@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>we should think of a name</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+<!-- search bar -->
+<header class="top">
+  <div class="search" role="search">
+
+    <!-- searcj box -->
+    <input id="searchInput" type="search" placeholder="Search here" autocomplete="off"
+           aria-label="Search installations" aria-controls="searchResults" aria-expanded="false">
+
+
+    <!-- magnifying glass -->
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="m20 20-3.5-3.5"/>
+    </svg>
+
+    <!-- search results -->
+    <ul id="searchResults" class="results" role="listbox" hidden></ul>
+
+  </div>
+</header>
+
+  <main>
+    <!-- map -->
+    <section id="view-map" class="view" aria-label="Map">
+        <div class="map-card">
+            <div id="map" class="map"></div>
+            <div id="markerLayer" class="marker-layer"></div>
+        </div>
+
+    </section>
+
+    <!-- practical info -->
+    <section id="view-info" class="view" aria-label="Practical info" hidden>
+      <h1>Practical info</h1>
+      <dl class="info">
+        <div><dt>Opening hours</dt><dd>All installations are accessible daily, 10:00 to 22:00.</dd></div>
+        <div><dt>Getting there</dt><dd>Every installation is reachable on foot or by bike from Eindhoven Centraal.</dd></div>
+        <div><dt>Accessibility</dt><dd>idk</dd></div>
+        <div><dt>Contact</dt><dd>idk</dd></div>
+      </dl>
+    </section>
+
+    <!-- more -->
+    <section id="view-more" class="view" aria-label="More" hidden>
+      <h1>More</h1>
+      <ul class="more">
+        <li><a href="about.html">About the project</a></li>
+      </ul>
+    </section>
+  </main>
+
+    <!-- bottom navigation -->  
+  <nav class="dock" aria-label="Main">
+    <button class="dock-btn is-active" data-view="map" aria-label="Map">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.800-7 11-7 11z"/><circle cx="12" cy="10" r="2.500"/></svg>
+      <span>Map</span>
+    </button>
+    <button class="dock-btn" data-view="info" aria-label="Practical info">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4.500L6 21z"/></svg>
+      <span>Practical info</span>
+    </button>
+    <button class="dock-btn" data-view="more" aria-label="More">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+      <span>More</span>
+    </button>
+  </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>
