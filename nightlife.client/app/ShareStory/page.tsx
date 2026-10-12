@@ -65,9 +65,9 @@ export default function ShareStoryPage() {
 
                 {/* Navigation Links */}
                 <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#c1cdd7]">
-                    <a href="#" className="hover:text-[#7ee0d1] transition">Home</a>
-                    <a href="#" className="hover:text-[#7ee0d1] transition">Map</a>
-                    <a href="#" className="text-[#e6edf3] font-bold border-b-2 border-[#7ee0d1] pb-1">
+                    <a href="http://localhost:3000" className="hover:text-[#7ee0d1] transition">Home</a>
+                    <a href="http://localhost:3000/map" className="hover:text-[#7ee0d1] transition">Map</a>
+                    <a href="http://localhost:3000/share-story" className="text-[#e6edf3] font-bold border-b-2 border-[#7ee0d1] pb-1">
                         Share your story
                     </a>
                 </nav>
