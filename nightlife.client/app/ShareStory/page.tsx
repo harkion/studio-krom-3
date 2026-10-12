@@ -34,22 +34,128 @@ export default function ShareStoryPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
+
         setTimeout(() => {
             setSubmitting(false);
             setSubmitted(true);
+
+            // Smoothly scroll to the top of the window so the success banner is immediately visible
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 600);
     };
 
     return (
-        <div className="min-h-screen bg-[#101820] text-[#e6edf3] flex flex-col justify-between">
-            {/* Main Content Container */}
-            <main className="w-full flex-1 py-12 px-4 flex items-center justify-center">
-                {/* Single Form Card (Adjust max-w-3xl to change size) */}
-                <div className="w-full max-w-3xl bg-[#17212b] rounded-3xl p-8 border border-[#35434f] shadow-sm">
+        <div className="min-h-screen bg-[#101820] text-[#e6edf3] flex flex-col justify-between font-sans">
+            {/* Header / Navbar */}
+            <header className="h-[78px] border-b border-[#35434f] bg-[#17212b] px-8 flex items-center justify-between">
+                {/* Brand */}
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full border border-[#35434f] flex items-center justify-center">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#7ee0d1]" />
+                    </div>
+                    <div>
+                        <span className="text-sm font-bold tracking-widest text-[#e6edf3] uppercase block">
+                            NIGHT / LIGHT
+                        </span>
+                        <small className="text-[9px] tracking-widest text-[#aab8c4] uppercase block">
+                            EINDHOVEN
+                        </small>
+                    </div>
+                </div>
+
+                {/* Navigation Links */}
+                <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#c1cdd7]">
+                    <a href="#" className="hover:text-[#7ee0d1] transition">Home</a>
+                    <a href="#" className="hover:text-[#7ee0d1] transition">Map</a>
+                    <a href="#" className="text-[#e6edf3] font-bold border-b-2 border-[#7ee0d1] pb-1">
+                        Share your story
+                    </a>
+                </nav>
+
+                {/* Emergency / Safety Button */}
+                <a
+                    href="#"
+                    className="border border-[#35434f] hover:border-[#7ee0d1] bg-[#17212b] text-[#e6edf3] hover:text-[#7ee0d1] px-4 py-2 rounded-full text-xs transition flex items-center gap-2"
+                >
+                    <svg className="w-3.5 h-3.5 text-[#7ee0d1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span>Get home safely</span>
+                </a>
+            </header>
+
+            {/* Main Content Layout */}
+            <main className="w-full max-w-7xl mx-auto px-6 py-12 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+
+                {/* Left Sidebar Content */}
+                <div className="lg:col-span-5 space-y-8 pr-0 lg:pr-4">
+                    <div>
+                        <p className="text-[10px] tracking-widest text-[#aab8c4] uppercase mb-3">
+                            01 / 05 &nbsp;·&nbsp; YOUR VOICE, YOUR CHOICE
+                        </p>
+                        <h1 className="font-serif text-4xl lg:text-5xl text-[#e6edf3] leading-tight mb-4">
+                            Tell your story.<br />On your terms.
+                        </h1>
+                        <p className="text-sm text-[#c1cdd7] leading-relaxed">
+                            Share what happened in Eindhoven. Write only what you feel comfortable sharing. You do not have to justify your experience.
+                        </p>
+                    </div>
+
+                    {/* Review Badge Card */}
+                    <div className="bg-[#17212b] border border-[#35434f] rounded-2xl p-5 flex items-start gap-3">
+                        <svg className="w-5 h-5 text-[#7ee0d1] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <h4 className="text-xs font-bold text-[#e6edf3] mb-1">
+                                Reviewed before it appears
+                            </h4>
+                            <p className="text-[11px] text-[#aab8c4] leading-normal">
+                                Your submission goes to the project admin, not straight onto the map. Only an approved story is published.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Highlight Box */}
+                    <div className="bg-[#17212b] border border-[#35434f] rounded-2xl p-8 relative overflow-hidden">
+                        <p className="text-[10px] tracking-widest text-[#aab8c4] uppercase mb-2">
+                            STRATUMSEIND · EINDHOVEN
+                        </p>
+                        <h2 className="font-serif text-2xl lg:text-3xl text-[#e6edf3] leading-snug">
+                            The harm was never your fault.
+                        </h2>
+                    </div>
+
+                    {/* DISTINCT WARNING CARD: Amber tone to prevent conflict with selection UI */}
+                    <div className="bg-[#282219] border border-[#f59e0b]/40 rounded-2xl p-6 shadow-sm space-y-3">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-[#f59e0b]/20 flex items-center justify-center shrink-0">
+                                <svg className="w-4 h-4 text-[#f59e0b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <h3 className="font-serif text-xl text-[#fef3c7] font-medium">
+                                Keep identifying details out
+                            </h3>
+                        </div>
+                        <p className="text-xs text-[#fde68a]/90 leading-relaxed pl-0.5">
+                            Please leave out other people&apos;s names, phone numbers, exact addresses, and personal details. An approximate street or general area is enough.
+                        </p>
+                        <div className="pt-2 border-t border-[#f59e0b]/20 text-[11px] text-[#fcd34d]/70">
+                            This is not an emergency service. Immediate danger: call <span className="text-[#f59e0b] font-bold">112</span>.
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Form Card */}
+                <div className="lg:col-span-7 bg-[#17212b] rounded-3xl p-8 border border-[#35434f] shadow-lg">
                     <div className="flex items-center justify-between mb-6 pb-2">
                         <h2 className="font-serif text-2xl text-[#e6edf3]">
                             Share your story
                         </h2>
+                        <span className="text-[10px] tracking-wider text-[#aab8c4] uppercase">
+                            FICTIONAL DEMO · FILLED EXAMPLE
+                        </span>
                     </div>
 
                     {submitted && (
@@ -59,6 +165,16 @@ export default function ShareStoryPage() {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Non-button style banner with left border accent */}
+                        <div className="p-3.5 bg-[#101820] border-l-4 border-[#f59e0b] rounded-r-xl flex items-center gap-3">
+                            <svg className="w-4 h-4 text-[#f59e0b] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-[11px] text-[#c1cdd7]">
+                                <strong className="text-[#e6edf3]">Important rule:</strong> Do not include real names, phone numbers, or exact addresses in your story.
+                            </p>
+                        </div>
+
                         {/* Story Field */}
                         <div>
                             <label className="block text-xs font-bold text-[#e6edf3] mb-2">
@@ -70,8 +186,7 @@ export default function ShareStoryPage() {
                                 required
                                 value={formData.story}
                                 onChange={handleChange}
-                                placeholder="Share your experience..."
-                                className="w-full bg-[#17212b] border border-[#35434f] rounded-xl p-3.5 text-xs text-[#e6edf3] placeholder-[#9cabb8] leading-relaxed focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition resize-y"
+                                className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3.5 text-xs text-[#e6edf3] placeholder-[#9cabb8] leading-relaxed focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition resize-y"
                             />
                             <p className="text-[10px] text-[#aab8c4] mt-1.5">
                                 Only share what feels okay. All content in this filled example is fictional.
@@ -90,7 +205,7 @@ export default function ShareStoryPage() {
                                     required
                                     value={formData.privateContactEmail}
                                     onChange={handleChange}
-                                    className="w-full bg-[#17212b] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
+                                    className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
                                 />
                                 <p className="text-[10px] text-[#aab8c4] mt-1.5">
                                     Only for review updates. Never shown publicly.
@@ -107,7 +222,7 @@ export default function ShareStoryPage() {
                                     required
                                     value={formData.location}
                                     onChange={handleChange}
-                                    className="w-full bg-[#17212b] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
+                                    className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
                                 />
                                 <p className="text-[10px] text-[#aab8c4] mt-1.5">
                                     Publicly shown as Stratumseind · approximate location.
@@ -127,7 +242,7 @@ export default function ShareStoryPage() {
                                     required
                                     value={formData.incidentDate}
                                     onChange={handleChange}
-                                    className="w-full bg-[#17212b] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
+                                    className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
                                 />
                                 <p className="text-[10px] text-[#aab8c4] mt-1.5">
                                     An approximate date is okay if you are unsure.
@@ -143,7 +258,7 @@ export default function ShareStoryPage() {
                                     name="incidentTime"
                                     value={formData.incidentTime}
                                     onChange={handleChange}
-                                    className="w-full bg-[#17212b] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
+                                    className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
                                 />
                                 {/* Time Radio Precision */}
                                 <div className="flex items-center gap-4 mt-2 text-[10px] text-[#c1cdd7]">
@@ -247,7 +362,7 @@ export default function ShareStoryPage() {
                                 }
                                 onChange={handleChange}
                                 placeholder="Not used — publishing anonymously"
-                                className="w-full bg-[#17212b] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] placeholder-[#9cabb8] disabled:bg-[#101820] disabled:text-[#aab8c4] disabled:cursor-not-allowed focus:outline-none focus:border-[#7ee0d1] transition"
+                                className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] placeholder-[#9cabb8] disabled:bg-[#101820]/50 disabled:text-[#aab8c4] disabled:cursor-not-allowed focus:outline-none focus:border-[#7ee0d1] transition"
                             />
                             <p className="text-[10px] text-[#aab8c4] mt-1.5">
                                 Your private email will never be used as your public name.
@@ -274,7 +389,11 @@ export default function ShareStoryPage() {
                         </div>
 
                         {/* Card Footer Actions */}
-                        <div className="pt-4 border-t border-[#2d3b47] flex items-center justify-end">
+                        <div className="pt-4 border-t border-[#2d3b47] flex items-center justify-between">
+                            <span className="text-[10px] text-[#aab8c4]">
+                                Nothing is published when you submit.<br />
+                                * Required · static school-project prototype
+                            </span>
                             <button
                                 type="submit"
                                 disabled={submitting || !formData.hasConsented}
@@ -286,6 +405,12 @@ export default function ShareStoryPage() {
                     </form>
                 </div>
             </main>
+
+            {/* Footer */}
+            <footer className="border-t border-[#35434f] bg-[#17212b] py-4 px-8 text-[11px] text-[#aab8c4] flex items-center justify-between">
+                <span>School project prototype - fictional demo content - no live submissions</span>
+                <span>Harm is never the target&apos;s fault.</span>
+            </footer>
         </div>
     );
 }
