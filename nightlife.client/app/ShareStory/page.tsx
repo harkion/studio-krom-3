@@ -4,23 +4,24 @@ import React, { useState } from 'react';
 
 export default function ShareStoryPage() {
     const [formData, setFormData] = useState({
-        story:
-            'I left a venue with two friends, then split off near the bridge. Someone kept the same pace behind me and crossed whenever I crossed. I called a friend and stepped into a late-night café, where a staff member let me wait until the person moved on.\n\nWhat stayed with me was how quickly a familiar street stopped feeling familiar. I wish someone nearby had simply asked if I was okay.',
-        privateContactEmail: 'alex.demo@example.com',
-        location: 'Stratumseind, near the bridge',
-        incidentDate: '19 September 2026',
-        incidentTime: 'Around 00:30',
+        story: '',
+        privateContactEmail: '',
+        location: '',
+        incidentDate: '',
+        incidentTime: '',
         timePrecision: 'Approximate',
-        anonymityOption: 'anonymous', // 'anonymous' | 'named'
+        anonymityOption: 'anonymous',
         publicDisplayName: '',
-        hasConsented: true,
+        hasConsented: false,
+        age: '',
+        gender: '',
     });
 
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
@@ -31,17 +32,36 @@ export default function ShareStoryPage() {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
 
-        setTimeout(() => {
-            setSubmitting(false);
-            setSubmitted(true);
+        try {
+            const response = await fetch('/api/stories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: `Story at ${formData.location}`, // SQLite title field
+                    summary: formData.story,                 // Maps to summary column
+                    category: 'Unwanted attention',          // Default category
+                    age: Number(formData.age),                        // Demographics default
+                    gender: formData.gender,                         // Demographics default
+                    newPlaceName: formData.location.trim(),  // Creates/links location in `places`
+                }),
+            });
 
-            // Smoothly scroll to the top of the window so the success banner is immediately visible
+            if (!response.ok) {
+                throw new Error('Failed to save story');
+            }
+
+            setSubmitted(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 600);
+        } catch (error) {
+            console.error('Error submitting story:', error);
+            alert('Failed to submit story to database.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -230,6 +250,54 @@ export default function ShareStoryPage() {
                             </div>
                         </div>
 
+                        {/* Age & Gender Input Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-[#e6edf3] mb-2">
+                                    Age <span className="text-[#aab8c4]">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    name="age"
+                                    required
+                                    min={12}
+                                    max={100}
+                                    placeholder="e.g. 22"
+                                    value={formData.age}
+                                    onChange={handleChange}
+                                    className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition"
+                                />
+                                <p className="text-[10px] text-[#aab8c4] mt-1.5">
+                                    Used for anonymous demographic mapping.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-[#e6edf3] mb-2">
+                                    Gender Identity <span className="text-[#aab8c4]">*</span>
+                                </label>
+                                <select
+                                    name="gender"
+                                    value={formData.gender}
+                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            gender: e.target.value,
+                                        }));
+                                    }}
+                                    className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-xs text-[#e6edf3] focus:outline-none focus:border-[#7ee0d1] focus:ring-1 focus:ring-[#7ee0d1] transition cursor-pointer"
+                                >
+                                    <option value="female">Female</option>
+                                    <option value="male">Male</option>
+                                    <option value="non-binary">Non-binary</option>
+                                    <option value="other">Other / Prefer not to say</option>
+                                </select>
+                                <p className="text-[10px] text-[#aab8c4] mt-1.5">
+                                    Select the option you identify with.
+                                </p>
+                            </div>
+                        </div>
+
                         {/* Date & Time Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -404,6 +472,8 @@ export default function ShareStoryPage() {
                         </div>
                     </form>
                 </div>
+
+
             </main>
 
             {/* Footer */}
