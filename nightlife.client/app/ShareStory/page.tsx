@@ -4,16 +4,15 @@ import React, { useState } from 'react';
 
 export default function ShareStoryPage() {
     const [formData, setFormData] = useState({
-        story:
-            'I left a venue with two friends, then split off near the bridge. Someone kept the same pace behind me and crossed whenever I crossed. I called a friend and stepped into a late-night café, where a staff member let me wait until the person moved on.\n\nWhat stayed with me was how quickly a familiar street stopped feeling familiar. I wish someone nearby had simply asked if I was okay.',
-        privateContactEmail: 'alex.demo@example.com',
-        location: 'Stratumseind, near the bridge',
-        incidentDate: '19 September 2026',
-        incidentTime: 'Around 00:30',
+        story: '',
+        privateContactEmail: '',
+        location: '',
+        incidentDate: '',
+        incidentTime: '',
         timePrecision: 'Approximate',
-        anonymityOption: 'anonymous', // 'anonymous' | 'named'
+        anonymityOption: 'anonymous',
         publicDisplayName: '',
-        hasConsented: true,
+        hasConsented: false,
     });
 
     const [submitting, setSubmitting] = useState(false);
@@ -31,17 +30,36 @@ export default function ShareStoryPage() {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
 
-        setTimeout(() => {
-            setSubmitting(false);
-            setSubmitted(true);
+        try {
+            const response = await fetch('/api/stories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: `Story at ${formData.location}`, // SQLite title field
+                    summary: formData.story,                 // Maps to summary column
+                    category: 'Unwanted attention',          // Default category
+                    age: 20,                                 // Demographics default
+                    gender: 'other',                         // Demographics default
+                    newPlaceName: formData.location.trim(),  // Creates/links location in `places`
+                }),
+            });
 
-            // Smoothly scroll to the top of the window so the success banner is immediately visible
+            if (!response.ok) {
+                throw new Error('Failed to save story');
+            }
+
+            setSubmitted(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 600);
+        } catch (error) {
+            console.error('Error submitting story:', error);
+            alert('Failed to submit story to database.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -404,6 +422,8 @@ export default function ShareStoryPage() {
                         </div>
                     </form>
                 </div>
+
+
             </main>
 
             {/* Footer */}
