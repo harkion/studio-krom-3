@@ -50,7 +50,7 @@ export default function RootLayout({
 
                     <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#c1cdd7]">
                         <Link href="/" className="hover:text-[#7ee0d1] transition">Home</Link>
-                        <Link href="/map" className="hover:text-[#7ee0d1] transition">Map</Link>
+                        <Link href="/street-view" className="hover:text-[#7ee0d1] transition">Street View</Link>
                         <Link href="/ShareStory" className="hover:text-[#7ee0d1] transition">
                             Share your story
                         </Link>
