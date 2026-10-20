@@ -14,30 +14,23 @@ db.pragma("foreign_keys = ON");
 
 // 4. Define table schema in the CORRECT order (places first, then stories)
 db.exec(`
-  -- 1. Create places table FIRST so foreign key references succeed
-  CREATE TABLE IF NOT EXISTS places (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    query TEXT NOT NULL,
-    category TEXT NOT NULL,
-    title TEXT NOT NULL,
-    summary TEXT NOT NULL,
-    scope TEXT NOT NULL,
-    status TEXT NOT NULL
-  );
+
 
   -- 2. Create stories table referencing places(id)
-  CREATE TABLE IF NOT EXISTS stories (
-    id TEXT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS stories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
-    summary TEXT NOT NULL,
+    location_name TEXT NOT NULL,
     category TEXT NOT NULL,
-    age INTEGER NOT NULL,
-    gender TEXT NOT NULL CHECK (gender IN ('male', 'female', 'non-binary', 'other')),
-    place_id TEXT REFERENCES places(id),
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'declined')),
+    narrative_text TEXT NOT NULL,
+    author_name TEXT DEFAULT 'Anonymous',
+    audio_voice_url TEXT,
+    pos_x REAL DEFAULT 0.0,
+    pos_y REAL DEFAULT 0.0,
+    pos_z REAL DEFAULT 0.0,
+    status TEXT DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+);
 `);
 
 // 5. Seed places table with initial data if empty
