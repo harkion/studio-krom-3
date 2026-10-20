@@ -137,9 +137,7 @@ export default function ShareStoryPage() {
                         <h2 className="font-serif text-2xl text-[#e6edf3]">
                             Share your story
                         </h2>
-                        <span className="text-[10px] tracking-wider text-[#aab8c4] uppercase">
-                            FICTIONAL DEMO · FILLED EXAMPLE
-                        </span>
+
                     </div>
 
                     {submitted && (
@@ -424,7 +422,7 @@ export default function ShareStoryPage() {
                         <div className="pt-4 border-t border-[#2d3b47] flex items-center justify-between">
                             <span className="text-[10px] text-[#aab8c4]">
                                 Nothing is published when you submit.<br />
-                                * Required · static school-project prototype
+                                * Required 
                             </span>
                             <button
                                 type="submit"
