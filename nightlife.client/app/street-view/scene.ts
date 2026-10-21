@@ -1,6 +1,12 @@
 import * as THREE from "three";
 
-export function mountStreet(host: HTMLDivElement) {
+export type StoryData = {
+    pos_x: number;
+    pos_z: number;
+    title: string;
+    audio: string | null;
+};
+export function mountStreet(host: HTMLDivElement, StoryData: StoryData[]) {
   let disposed = false;
   const removers: (() => void)[] = [];
   function on(target: EventTarget, event: string, handler: EventListener) {
