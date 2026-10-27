@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { wrapStreetZ, streetArea, WORLD_LENGTH } from "./loop-path";
 
 export type StoryData = {
     x: number;
@@ -28,7 +29,6 @@ export function mountStreet(host: HTMLDivElement, storiesData: StoryData[]) {
     sound: THREE.PositionalAudio;
   };
   let started = false;
-  const STREET_LENGTH = 40;
   const WALK_SPEED = 2.5;
   const TURN_SPEED = 1.5;
   const CHOICE_RANGE = 3.5;
@@ -73,28 +73,43 @@ export function mountStreet(host: HTMLDivElement, storiesData: StoryData[]) {
   scene.add(new THREE.HemisphereLight(0xd0d0ee, 0x4a4a5a, 0.6));
 
   const placeholder = new THREE.Group();
-
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, STREET_LENGTH + 20),
+    new THREE.PlaneGeometry(10, WORLD_LENGTH * 3 + 20),
     new THREE.MeshStandardMaterial({ color: 0x4a4a58 }),
   );
   floor.rotation.x = -Math.PI / 2;
-  floor.position.z = -STREET_LENGTH / 2;
+  floor.position.z = -WORLD_LENGTH / 2;
   placeholder.add(floor);
 
-  for (let z = 0; z > -STREET_LENGTH - 10; z -= 6) {
-    const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x5c5c70 });
-
-    const left = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 5), wallMaterial);
-    left.position.set(-5, 3, z);
-
-    const right = new THREE.Mesh(
-      new THREE.BoxGeometry(2, 6 + Math.random() * 3, 5),
-      wallMaterial,
-    );
-    right.position.set(5, 3, z);
-
-    placeholder.add(left, right);
+  // Repeat the same scenery on either side of the wrap point. The camera
+  // keeps its heading and sideways position; the join is beyond the view.
+  const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x5c5c70 });
+  const detailMaterial = new THREE.MeshStandardMaterial({ color: 0x171722 });
+  function box(x: number, y: number, z: number, width: number,
+    height: number, depth: number, material = wallMaterial) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+    mesh.position.set(x, y, z);
+    placeholder.add(mesh);
+  }
+  for (const offset of [-WORLD_LENGTH, 0, WORLD_LENGTH]) {
+    for (let i = 0; i < WORLD_LENGTH / 6; i++) {
+      const localZ = -i * 6;
+      const z = localZ + offset;
+      // Original street width and box-building dimensions remain unchanged.
+      box(-5, 3, z, 2, 6, 5);
+      const height = 6 + ((i * 7) % 10) * 0.3;
+      box(5, 3, z, 2, height, 5);
+      // Leave the first 40 metres, including both original bubbles, clear.
+      if (localZ < -40 && localZ > -80) {
+        box(5, 3.7, z, 3, 0.25, 5, detailMaterial);
+        box(5.8, 1.8, z - 2, 0.2, 3.6, 0.2, detailMaterial);
+      } else if (localZ <= -80 && localZ > -160) {
+        box(-4.1, 2.8, z, 0.8, 0.2, 3, detailMaterial);
+        box(4.1, 2.8, z, 0.8, 0.2, 3, detailMaterial);
+      } else if (localZ <= -160) {
+        box(4.5, 0.5, z, 0.8, 1, 1, detailMaterial);
+      }
+    }
   }
   scene.add(placeholder);
 
@@ -227,10 +242,10 @@ export function mountStreet(host: HTMLDivElement, storiesData: StoryData[]) {
       camera.position.addScaledVector(direction, -WALK_SPEED * delta);
 
     camera.position.x = Math.max(-3.5, Math.min(3.5, camera.position.x));
-    camera.position.z = Math.max(
-      -STREET_LENGTH,
-      Math.min(2, camera.position.z),
-    );
+    camera.position.z = wrapStreetZ(camera.position.z);
+    const label = element("area-name");
+    const area = streetArea(camera.position.z);
+    if (label.textContent !== area) label.textContent = area;
   }
 
   const choiceBox = element("choice-box");
