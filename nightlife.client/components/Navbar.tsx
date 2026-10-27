@@ -8,6 +8,7 @@ export default function Navbar() {
 
     const navItems = [
         { name: 'Home', href: '/' },
+        { name: 'Street View', href: '/street-view' },
         { name: 'Share your story', href: '/ShareStory' },
     ];
 

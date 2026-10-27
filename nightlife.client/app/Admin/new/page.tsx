@@ -7,7 +7,9 @@ import path from "path";
 export default function AddNewStoryPage() {
     // 1. Next.js Server Action to handle form submission
     async function createStory(formData: FormData) {
-        "use server"; // This tells Next.js to run this function only on the backend
+
+        "use server"; // tells Next.js to run this function only on the backend
+
 
         // 2. Extract values from the form data
         const title = formData.get("title");
