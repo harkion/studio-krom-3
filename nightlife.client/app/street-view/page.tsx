@@ -1,25 +1,36 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import "./street.css";
+import { getApprovedStories } from "./actions";
+import { type StoryData } from "./scene";
 export default function StreetView() {
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    let cleanup: (() => void) | undefined;
-    import("./scene")
-      .then(({ mountStreet }) => {
-        if (cancelled || !host.current) return;
-        cleanup = mountStreet(host.current);
-        setReady(true);
-      })
-      .catch(() => {
-        if (!cancelled)
-          setError(
-            "The 3D scene could not start. Try a browser with WebGL enabled.",
-          );
-      });
+    const [ready, setReady] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        let cleanup: (() => void) | undefined;
+
+        getApprovedStories().then((rawData) => {
+            if (cancelled) return;
+
+            const storiesData = rawData as StoryData[];
+
+            import("./scene")
+                .then(({ mountStreet }) => {
+                    if (cancelled || !host.current) return;
+
+                    cleanup = mountStreet(host.current, storiesData);
+                    setReady(true);
+                })
+                .catch(() => {
+                    if (!cancelled)
+                        setError(
+                            "The 3D scene could not start. Try a browser with WebGL enabled.",
+                        );
+                });
+        });
     return () => {
       cancelled = true;
       cleanup?.();
