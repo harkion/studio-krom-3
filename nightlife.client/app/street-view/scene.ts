@@ -1,6 +1,13 @@
 import * as THREE from "three";
 
-export function mountStreet(host: HTMLDivElement) {
+export type StoryData = {
+    x: number;
+    z: number;
+    title: string;
+    audio: string | null;
+    color: number;
+};
+export function mountStreet(host: HTMLDivElement, storiesData: StoryData[]) {
   let disposed = false;
   const removers: (() => void)[] = [];
   function on(target: EventTarget, event: string, handler: EventListener) {
@@ -25,7 +32,7 @@ export function mountStreet(host: HTMLDivElement) {
   const WALK_SPEED = 2.5;
   const TURN_SPEED = 1.5;
   const CHOICE_RANGE = 3.5;
-
+/*
   const definitions = [
     {
       x: 2,
@@ -42,7 +49,7 @@ export function mountStreet(host: HTMLDivElement) {
       color: 0x6bd5ff,
     },
   ];
-
+*/
   const scene = new THREE.Scene();
 
   const NIGHT = 0x6b6b8a;
@@ -95,7 +102,7 @@ export function mountStreet(host: HTMLDivElement) {
   camera.add(listener);
   const audioLoader = new THREE.AudioLoader();
 
-  const installations: Station[] = definitions.map(function (definition) {
+    const installations: Station[] = storiesData.map(function (definition) {
     const inst = { ...definition } as Station;
 
     inst.mesh = new THREE.Mesh(

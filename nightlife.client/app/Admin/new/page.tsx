@@ -7,53 +7,46 @@ import path from "path";
 export default function AddNewStoryPage() {
     // 1. Next.js Server Action to handle form submission
     async function createStory(formData: FormData) {
-        "use server"; // tells Next.js to run this function only on the backend
+        "use server";
 
-        // 2. Extract values from the form data
-        const title = formData.get("title");
-        const location_name = formData.get("location_name");
-        const category = formData.get("category");
-        const narrative_text = formData.get("narrative_text");
-        const author_name = formData.get("author_name") || "Admin"; // Default to Admin
-        const pos_x = parseFloat(formData.get("pos_x") as string) || 0;
-        const pos_y = parseFloat(formData.get("pos_y") as string) || 0;
-        const pos_z = parseFloat(formData.get("pos_z") as string) || 0;
+        try {
+            const title = formData.get("title");
+            const location_name = formData.get("location_name");
+            const category = formData.get("category");
+            const narrative_text = formData.get("narrative_text");
+            const author_name = formData.get("author_name") || "Admin";
+            const x = parseFloat(formData.get("x") as string) || 0;
+            const z = parseFloat(formData.get("z") as string) || 0;
 
-        // 2. Handle the file upload
-        const file = formData.get("media_file") as File;
-        let fileUrl = "";
+            const file = formData.get("media_file") as File;
+            let fileUrl = "";
 
-        if (file && file.size > 0) {
-            // Convert the file into a readable format for Node.js
-            const buffer = Buffer.from(await file.arrayBuffer());
+            if (file && file.size > 0) {
+                const buffer = Buffer.from(await file.arrayBuffer());
+                const uniqueFilename = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+                const savePath = path.join(process.cwd(), "public/uploads", uniqueFilename);
+                await writeFile(savePath, buffer);
+                fileUrl = `/uploads/${uniqueFilename}`;
+            }
 
-            // Create a unique file name so uploads don't overwrite each other
-            const uniqueFilename = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+            db.prepare(`
+              INSERT INTO stories (
+                title, location_name, category, narrative_text, author_name, 
+                x, z, audio, color, status
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')
+            `).run(
+                title, location_name, category, narrative_text, author_name,
+                x, z, fileUrl, 0x6bd5ff
+            );
 
-            // Save it into the "public/uploads" folder
-            const savePath = path.join(process.cwd(), "public/uploads", uniqueFilename);
-            await writeFile(savePath, buffer);
-
-            // This is the URL we save to the database so the frontend can load it
-            fileUrl = `/uploads/${uniqueFilename}`;
+        } catch (error) {
+            console.error("Server Action Failed:", error);
+            throw new Error("Story submission failed.");
         }
-        // 3. Insert directly into SQLite as 'approved'
-        db.prepare(`
-      INSERT INTO stories (
-        title, location_name, category, narrative_text, author_name, 
-        pos_x, pos_y, pos_z,audio_voice_url, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved')
-     
-    `).run(// run the insert statement with the extracted values
-            title, location_name, category, narrative_text, author_name,
-            pos_x, pos_y, pos_z, fileUrl
-        );
 
-
-        // 4. Redirect back to the admin overview page
+        // Redirect back to the admin overview page
         redirect("/Admin");
     }
-
     return (
         <div className="w-full min-h-screen flex flex-col justify-start pt-24 px-8 pb-12 max-w-4xl mx-auto">
             <div className="mb-8">
@@ -98,11 +91,10 @@ export default function AddNewStoryPage() {
                 </div>
 
                 <div className="border-t border-slate-700/80 pt-6">
-                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-3">3D Spatial Position (X, Y, Z)</label>
-                    <div className="grid grid-cols-3 gap-4">
-                        <input type="number" step="0.1" name="pos_x" defaultValue="0" className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200" />
-                        <input type="number" step="0.1" name="pos_y" defaultValue="0" className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200" />
-                        <input type="number" step="0.1" name="pos_z" defaultValue="0" className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200" />
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-3">3D Spatial Position (X, Z)</label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <input type="number" step="0.1" name="x" defaultValue="0" className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200" />
+                        <input type="number" step="0.1" name="z" defaultValue="0" className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200" />
                     </div>
                 </div>
 
