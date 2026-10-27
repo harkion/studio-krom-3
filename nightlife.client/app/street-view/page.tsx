@@ -35,8 +35,8 @@ export default function StreetView() {
         <h1>Night Light</h1>
         <p>Headphones recommended. The only sounds are the stories.</p>
         <p>
-          This prototype uses a placeholder street. One of the two stations has
-          audio.
+          Walk along a straight street through changing surroundings.
+          One of the two original story points has audio.
         </p>
         {error ? (
           <p role="alert">{error}</p>
@@ -46,7 +46,7 @@ export default function StreetView() {
           </button>
         )}
       </div>
-      <p className="sv-hint">Arrow keys or W A S D to walk and turn</p>
+      <p className="sv-hint"><span id="area-name">Station</span>{" · "}Arrow keys or W A S D to walk and turn</p>
       <p id="audio-status" className="sv-status" role="status" />
       <div id="choice-box" className="sv-choice hidden">
         <p id="choice-text" />
