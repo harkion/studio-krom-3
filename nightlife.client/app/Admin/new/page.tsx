@@ -4,8 +4,17 @@ import Link from "next/link";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-export default function AddNewStoryPage() {
-    // 1. Next.js Server Action to handle form submission
+export default async function AddNewStoryPage({
+    searchParams
+}: {
+    searchParams: Promise<{ x?: string; z?: string }>
+}) {
+    // 1. Unwrap searchParams for Next.js 15 compatibility and set default coordinates
+    const resolvedParams = await searchParams;
+    const defaultX = resolvedParams.x || "0";
+    const defaultZ = resolvedParams.z || "0";
+
+    // 2. Next.js Server Action to handle form submission
     async function createStory(formData: FormData) {
         "use server";
 
@@ -47,6 +56,7 @@ export default function AddNewStoryPage() {
         // Redirect back to the admin overview page
         redirect("/Admin");
     }
+
     return (
         <div className="w-full min-h-screen flex flex-col justify-start pt-24 px-8 pb-12 max-w-4xl mx-auto">
             <div className="mb-8">
@@ -56,7 +66,7 @@ export default function AddNewStoryPage() {
                 </p>
             </div>
 
-            {/* 5. The form calls our createStory server action */}
+            {/* 3. Single, correct form layout */}
             <form action={createStory} className="bg-[#151c24] border border-slate-700/80 rounded-2xl shadow-lg p-8 space-y-6">
 
                 <div className="grid grid-cols-2 gap-6">
@@ -90,15 +100,27 @@ export default function AddNewStoryPage() {
                     <textarea name="narrative_text" rows={5} required className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-slate-500" placeholder="The story details..."></textarea>
                 </div>
 
+                {/* 4. Single Coordinates Block INSIDE the form using defaultX/defaultZ */}
                 <div className="border-t border-slate-700/80 pt-6">
                     <label className="block text-xs font-semibold text-slate-400 uppercase mb-3">3D Spatial Position (X, Z)</label>
                     <div className="grid grid-cols-2 gap-4">
-                        <input type="number" step="0.1" name="x" defaultValue="0" className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200" />
-                        <input type="number" step="0.1" name="z" defaultValue="0" className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200" />
+                        <input
+                            type="number"
+                            step="0.1"
+                            name="x"
+                            defaultValue={defaultX}
+                            className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200"
+                        />
+                        <input
+                            type="number"
+                            step="0.1"
+                            name="z"
+                            defaultValue={defaultZ}
+                            className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200"
+                        />
                     </div>
                 </div>
 
-                {/* 4. New Media Upload Input */}
                 <div className="border-t border-slate-700/80 pt-6">
                     <label className="block text-xs font-semibold text-slate-400 uppercase mb-3">
                         Upload Media (Audio, Photo, or Video)
@@ -112,7 +134,7 @@ export default function AddNewStoryPage() {
                 </div>
 
                 <div className="flex justify-end gap-4 pt-4">
-                    <Link href="/admin" className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition">
+                    <Link href="/Admin" className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition">
                         Cancel
                     </Link>
                     <button type="submit" className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-sm font-medium px-6 py-2.5 rounded-full transition">
