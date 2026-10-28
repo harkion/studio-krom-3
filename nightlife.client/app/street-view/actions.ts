@@ -1,11 +1,17 @@
 "use server";
 
-import db from "@/lib/stories";
+import { supabase } from "@/lib/supabase";
 
 export async function getApprovedStories() {
-    const stories = db
-        .prepare("SELECT * FROM stories WHERE status = 'approved'")
-        .all();
+    const { data: stories, error } = await supabase
+        .from('stories')
+        .select('*')
+        .eq('status', 'approved');
 
-    return stories;
+    if (error) {
+        console.error("Error fetching approved stories:", error);
+        return [];
+    }
+
+    return stories || [];
 }

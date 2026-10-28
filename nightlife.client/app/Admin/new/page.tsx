@@ -1,4 +1,4 @@
-import db from "@/lib/stories";
+import { supabase } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { writeFile } from "fs/promises";
@@ -14,7 +14,7 @@ export default async function AddNewStoryPage({
     const defaultX = resolvedParams.x || "0";
     const defaultZ = resolvedParams.z || "0";
 
-    // 2. Next.js Server Action to handle form submission
+    // 2. Next.js Server Action to handle form submission with Supabase
     async function createStory(formData: FormData) {
         "use server";
 
@@ -38,15 +38,24 @@ export default async function AddNewStoryPage({
                 fileUrl = `/uploads/${uniqueFilename}`;
             }
 
-            db.prepare(`
-              INSERT INTO stories (
-                title, location_name, category, narrative_text, author_name, 
-                x, z, audio, color, status
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')
-            `).run(
-                title, location_name, category, narrative_text, author_name,
-                x, z, fileUrl, 0x6bd5ff
-            );
+            // Supabase insert query
+            const { error } = await supabase.from('stories').insert({
+                title,
+                location_name,
+                category,
+                narrative_text,
+                author_name,
+                x,
+                z,
+                audio: fileUrl || null,
+                color: 0x6bd5ff,
+                status: 'approved'
+            });
+
+            if (error) {
+                console.error("Supabase Insert Error:", error);
+                throw new Error(error.message);
+            }
 
         } catch (error) {
             console.error("Server Action Failed:", error);
@@ -66,7 +75,6 @@ export default async function AddNewStoryPage({
                 </p>
             </div>
 
-            {/* 3. Single, correct form layout */}
             <form action={createStory} className="bg-[#151c24] border border-slate-700/80 rounded-2xl shadow-lg p-8 space-y-6">
 
                 <div className="grid grid-cols-2 gap-6">
@@ -100,7 +108,6 @@ export default async function AddNewStoryPage({
                     <textarea name="narrative_text" rows={5} required className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-slate-500" placeholder="The story details..."></textarea>
                 </div>
 
-                {/* 4. Single Coordinates Block INSIDE the form using defaultX/defaultZ */}
                 <div className="border-t border-slate-700/80 pt-6">
                     <label className="block text-xs font-semibold text-slate-400 uppercase mb-3">3D Spatial Position (X, Z)</label>
                     <div className="grid grid-cols-2 gap-4">

@@ -1,22 +1,20 @@
 import db from "@/lib/stories";
 import Link from "next/link";
 import { deleteStory } from "./actions";
+import { supabase } from "@/lib/supabase";
 
-export default function AdminOverviewPage() {
-    // 1. Fetch all active/approved stories from SQLite
-    const stories = db
-        .prepare("SELECT * FROM stories WHERE status = 'approved' ORDER BY created_at DESC")
-        .all() as Array<{
-            id: number;
-            title: string;
-            location_name: string;
-            category: string;
-            narrative_text: string;
-            author_name: string;
-            x: number;
-            z: number;
-            created_at: string;
-        }>;
+export default async function AdminOverviewPage() {
+    // 1. Fetch all active/approved stories from Supabase asynchronously
+    const { data: stories, error } = await supabase
+        .from('stories')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Error fetching stories:", error);
+        throw new Error("Failed to load stories from Supabase.");
+    }
 
     return (
         <div className="w-full min-h-screen flex flex-col justify-start pt-24 px-8 pb-12 max-w-6xl mx-auto">

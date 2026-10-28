@@ -1,11 +1,21 @@
 "use server";
 
-import db from "@/lib/stories";
+import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function deleteStory(id: number) {
-    db.prepare("DELETE FROM stories WHERE id = ?").run(id);
+    // Supabase DELETE query
+    const { error } = await supabase
+        .from('stories')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error("Delete failed:", error);
+        throw new Error("Failed to delete story.");
+    }
+
     revalidatePath("/Admin");
 }
 
@@ -18,12 +28,24 @@ export async function updateStory(id: number, formData: FormData) {
     const x = parseFloat(formData.get("x") as string) || 0;
     const z = parseFloat(formData.get("z") as string) || 0;
 
-    db.prepare(`
-    UPDATE stories SET 
-      title = ?, location_name = ?, category = ?, 
-      narrative_text = ?, author_name = ?, x = ?, z = ?
-    WHERE id = ?
-  `).run(title, location_name, category, narrative_text, author_name, x, z, id);
+    // Supabase UPDATE query
+    const { error } = await supabase
+        .from('stories')
+        .update({
+            title,
+            location_name,
+            category,
+            narrative_text,
+            author_name,
+            x,
+            z
+        })
+        .eq('id', id);
+
+    if (error) {
+        console.error("Update failed:", error);
+        throw new Error("Failed to update story.");
+    }
 
     revalidatePath("/Admin");
     redirect("/Admin");

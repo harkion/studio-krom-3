@@ -1,25 +1,24 @@
-import db from "@/lib/stories";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { updateStory } from "../../actions";
 import { notFound } from "next/navigation";
 
-export default async function EditStoryPage({ params }: { params: { id: string } }) {
+export default async function EditStoryPage({
+    params
+}: {
+    params: Promise<{ id: string }>
+}) {
     const resolvedParams = await params;
     const id = parseInt(resolvedParams.id, 10);
 
-    // 1. Fetch the existing story from the database
-    const story = db.prepare("SELECT * FROM stories WHERE id = ?").get(id) as {
-        id: number;
-        title: string;
-        location_name: string;
-        category: string;
-        narrative_text: string;
-        author_name: string;
-        x: number;
-        z: number;
-    } | undefined;
+    // 1. Fetch the existing story from Supabase
+    const { data: story, error } = await supabase
+        .from('stories')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    if (!story) {
+    if (error || !story) {
         notFound();
     }
 
