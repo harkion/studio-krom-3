@@ -335,7 +335,7 @@ export function mountStreet(
 
             const distance = camera.position.distanceTo(inst.mesh.position);
 
-            // Hearing range threshold (e.g., 12 meters)
+            // Hearing range threshold 
             const HEARING_RANGE = 20;
 
             if (distance < HEARING_RANGE) {
