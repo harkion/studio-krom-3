@@ -50,3 +50,17 @@ export async function updateStory(id: number, formData: FormData) {
     revalidatePath("/Admin");
     redirect("/Admin");
 }
+
+export async function approveStory(id: number) {
+    const { error } = await supabase
+        .from('stories')
+        .update({ status: 'approved' })
+        .eq('id', id);
+
+    if (error) {
+        console.error("Approval failed:", error);
+        throw new Error("Failed to approve story.");
+    }
+
+    revalidatePath("/Admin");
+}
