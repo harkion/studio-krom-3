@@ -6,7 +6,7 @@ import { type StoryData } from "./scene";
 export default function StreetView() {
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
-    const [ready, setReady] = useState(false);
+
 
     useEffect(() => {
         let cancelled = false;
@@ -22,7 +22,7 @@ export default function StreetView() {
                     if (cancelled || !host.current) return;
 
                     cleanup = mountStreet(host.current, storiesData);
-                    setReady(true);
+
                 })
                 .catch(() => {
                     if (!cancelled)
@@ -30,6 +30,8 @@ export default function StreetView() {
                             "The 3D scene could not start. Try a browser with WebGL enabled.",
                         );
                 });
+        }).catch(() => {
+            if (!cancelled) setError("Stories could not load. Please refresh and try again.");
         });
     return () => {
       cancelled = true;

@@ -16,7 +16,7 @@ export default function Home() {
     let cancelled = false;
     let dispose: (() => void) | undefined;
     import("./street-view/scene").then(({ mountStreet }) => {
-      if (!cancelled && street.current) dispose = mountStreet(street.current, { preview: true });
+      if (!cancelled && street.current) dispose = mountStreet(street.current, [], { preview: true });
     }).catch(() => { if (!cancelled) setUnavailable(true); });
     return () => {
       cancelled = true;
