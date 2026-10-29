@@ -1,8 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { writeFile } from "fs/promises";
-import path from "path";
 
 export default async function AddNewStoryPage({
     searchParams
@@ -14,7 +12,7 @@ export default async function AddNewStoryPage({
     const defaultX = resolvedParams.x || "0";
     const defaultZ = resolvedParams.z || "0";
 
-    // 2. Next.js Server Action to handle form submission with Supabase
+    // 2. Next.js Server Action to handle form submission with Supabase Storage
     async function createStory(formData: FormData) {
         "use server";
 
@@ -28,17 +26,30 @@ export default async function AddNewStoryPage({
             const z = parseFloat(formData.get("z") as string) || 0;
 
             const file = formData.get("media_file") as File;
-            let fileUrl = "";
+            let fileUrl = null;
 
             if (file && file.size > 0) {
-                const buffer = Buffer.from(await file.arrayBuffer());
                 const uniqueFilename = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
-                const savePath = path.join(process.cwd(), "public/uploads", uniqueFilename);
-                await writeFile(savePath, buffer);
-                fileUrl = `/uploads/${uniqueFilename}`;
+
+                // Upload media file directly to Supabase Storage bucket ('stories-media')
+                const { error: uploadError } = await supabase.storage
+                    .from('stories-media')
+                    .upload(uniqueFilename, file);
+
+                if (uploadError) {
+                    console.error("Storage Upload Error:", uploadError);
+                    throw new Error("Failed to upload media file to Supabase.");
+                }
+
+                // Retrieve the public URL for the uploaded file
+                const { data: { publicUrl } } = supabase.storage
+                    .from('stories-media')
+                    .getPublicUrl(uniqueFilename);
+
+                fileUrl = publicUrl;
             }
 
-            // Supabase insert query
+            // Supabase insert query with the permanent cloud file URL
             const { error } = await supabase.from('stories').insert({
                 title,
                 location_name,
@@ -47,7 +58,7 @@ export default async function AddNewStoryPage({
                 author_name,
                 x,
                 z,
-                audio: fileUrl || null,
+                audio: fileUrl,
                 color: 0x6bd5ff,
                 status: 'approved'
             });

@@ -327,36 +327,58 @@ export function mountStreet(
   let listening = false;
   const passed: Station[] = [];
 
-  function checkNearbyInstallations() {
-    if (!started || listening) return;
+    function checkNearbyInstallations() {
+        if (!started) return;
 
-    let nearest: Station | null = null;
-    let nearestDistance = 999;
+        for (const inst of installations) {
+            if (!inst.sound.buffer) continue;
 
-    for (const inst of installations) {
-      if (passed.indexOf(inst) !== -1) continue;
-      const distance = camera.position.distanceTo(inst.mesh.position);
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearest = inst;
-      }
+            const distance = camera.position.distanceTo(inst.mesh.position);
+
+            // Hearing range threshold (e.g., 12 meters)
+            const HEARING_RANGE = 20;
+
+            if (distance < HEARING_RANGE) {
+                // Start playing automatically if within range and not already playing
+                if (!inst.sound.isPlaying) {
+                    try {
+                        listener.context.resume().then(() => {
+                            inst.sound.setVolume(1);
+                            inst.sound.play();
+                        });
+                    } catch (e) {
+                        console.error("Audio playback error:", e);
+                    }
+                }
+            } else {
+                // Stop playing when you walk far enough away to save resources
+                if (inst.sound.isPlaying) {
+                    inst.sound.stop();
+                }
+            }
+        }
+
+        // Keep your existing choice box logic if you still want the popup when very close (e.g., within 3.5 meters)
+        let nearest: Station | null = null;
+        let nearestDistance = 999;
+
+        for (const inst of installations) {
+            const distance = camera.position.distanceTo(inst.mesh.position);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearest = inst;
+            }
+        }
+
+        if (nearest && nearestDistance < CHOICE_RANGE) {
+            current = nearest;
+            choiceText.textContent = nearest.title;
+            choiceBox.classList.remove("hidden");
+        } else {
+            current = null;
+            choiceBox.classList.add("hidden");
+        }
     }
-
-    if (nearest && nearestDistance < CHOICE_RANGE) {
-      current = nearest;
-      choiceText.textContent = nearest.title;
-      (listenBtn as HTMLButtonElement).disabled = !nearest.sound.buffer;
-      listenBtn.textContent = !nearest.audio
-        ? "Audio not supplied"
-        : !nearest.sound.buffer
-          ? "Audio loading"
-          : "Stop and listen";
-      choiceBox.classList.remove("hidden");
-    } else {
-      current = null;
-      choiceBox.classList.add("hidden");
-    }
-  }
 
   let playbackRequest = 0;
   on(listenBtn, "click", function () {
