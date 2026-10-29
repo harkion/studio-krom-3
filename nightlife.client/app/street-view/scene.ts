@@ -1,8 +1,10 @@
 import * as THREE from "three";
 import { wrapStreetZ, streetArea, WORLD_LENGTH } from "./loop-path";
 
-export function mountStreet(host: HTMLDivElement) {
+export function mountStreet(host: HTMLDivElement, options: { preview?: boolean } = {}) {
   let disposed = false;
+  let introTimer = 0;
+  let fadeTimer = 0;
   const removers: (() => void)[] = [];
   function on(target: EventTarget, event: string, handler: EventListener) {
     target.addEventListener(event, handler);
@@ -106,6 +108,31 @@ export function mountStreet(host: HTMLDivElement) {
   }
   scene.add(placeholder);
 
+  // The homepage renders the street scenery without story bubbles, controls or audio.
+  if (options.preview) {
+    const draw = () => {
+      camera.aspect = host.clientWidth / Math.max(1, host.clientHeight);
+      camera.updateProjectionMatrix();
+      renderer.setSize(host.clientWidth, host.clientHeight);
+      renderer.render(scene, camera);
+    };
+    const observer = new ResizeObserver(draw);
+    observer.observe(host);
+    draw();
+    return () => {
+      observer.disconnect();
+      scene.traverse(object => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach(material => material.dispose());
+        }
+      });
+      renderer.dispose();
+      renderer.domElement.remove();
+    };
+  }
+
   const listener = new THREE.AudioListener();
   camera.add(listener);
   const audioLoader = new THREE.AudioLoader();
@@ -136,7 +163,7 @@ export function mountStreet(host: HTMLDivElement) {
         function (buffer) {
           if (disposed) return;
           inst.sound.setBuffer(buffer);
-          if (started) inst.sound.play();
+          // Loading a story never starts playback.
         },
         undefined,
         function () {
@@ -147,22 +174,24 @@ export function mountStreet(host: HTMLDivElement) {
       );
     return inst;
   });
-  on(element("start-btn"), "click", function () {
+  function beginExperience() {
+    if (disposed || started) return;
     started = true;
-    void listener.context.resume().catch(() => {
-      element("audio-status").textContent =
-        "Audio could not start. You can still explore the street.";
-    });
-    installations.forEach(function (inst) {
-      if (inst.sound.buffer && !inst.sound.isPlaying) inst.sound.play();
-    });
-    element("start-screen").classList.add("hidden");
+    const intro = element("intro-screen");
+    intro.classList.add("leaving");
+    fadeTimer = window.setTimeout(() => intro.classList.add("hidden"), 650);
     host.tabIndex = -1;
     host.focus();
-  });
+  }
+  introTimer = window.setTimeout(beginExperience, 2500);
 
   const keys = { forward: false, back: false, left: false, right: false };
   let paused = false;
+  const joystick = { x: 0, y: 0 };
+  let joystickPointer: number | null = null;
+  const lookPointers = new Map<number, { x: number; y: number }>();
+  const joystickElement = element("joystick");
+  const joystickKnob = joystickElement.firstElementChild as HTMLElement;
 
   function setKey(event: KeyboardEvent, value: boolean) {
     if (event.key === "ArrowUp" || event.key === "w") keys.forward = value;
@@ -196,27 +225,77 @@ export function mountStreet(host: HTMLDivElement) {
     setKey(e, false)) as EventListener);
   on(window, "blur", () => {
     keys.forward = keys.back = keys.left = keys.right = false;
+    joystick.x = joystick.y = 0;
+    joystickPointer = null;
+    lookPointers.clear();
+    joystickElement.classList.add("hidden");
   });
 
-  function holdButton(id: string, name: keyof typeof keys) {
-    const btn = element(id);
-    on(btn, "pointerdown", function () {
-      keys[name] = true;
-    });
-    on(btn, "pointerup", function () {
-      keys[name] = false;
-    });
-    on(btn, "pointercancel", () => {
-      keys[name] = false;
-    });
-    on(btn, "pointerleave", function () {
-      keys[name] = false;
-    });
+  const canvas = renderer.domElement;
+  const JOYSTICK_RADIUS = 42;
+  on(canvas, "pointerdown", ((event: PointerEvent) => {
+    if (!started || paused || event.pointerType !== "touch") return;
+    const bounds = host.getBoundingClientRect();
+    const y = event.clientY - bounds.top;
+
+    if (joystickPointer === null && y > bounds.height * 0.45) {
+      const x = event.clientX - bounds.left;
+      joystickPointer = event.pointerId;
+      joystickElement.style.left = `${x}px`;
+      joystickElement.style.top = `${y}px`;
+      joystickElement.classList.remove("hidden");
+      joystickKnob.style.transform = "translate(-50%, -50%)";
+    } else {
+      lookPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+
+    canvas.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }) as EventListener);
+
+  on(canvas, "pointermove", ((event: PointerEvent) => {
+    if (event.pointerId === joystickPointer) {
+      const bounds = host.getBoundingClientRect();
+      const centerX = bounds.left + Number.parseFloat(joystickElement.style.left);
+      const centerY = bounds.top + Number.parseFloat(joystickElement.style.top);
+      const deltaX = event.clientX - centerX;
+      const deltaY = event.clientY - centerY;
+      const distance = Math.hypot(deltaX, deltaY);
+      const scale = distance > JOYSTICK_RADIUS ? JOYSTICK_RADIUS / distance : 1;
+      const offsetX = deltaX * scale;
+      const offsetY = deltaY * scale;
+
+      joystick.x = offsetX / JOYSTICK_RADIUS;
+      joystick.y = offsetY / JOYSTICK_RADIUS;
+      joystickKnob.style.transform =
+        `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+      event.preventDefault();
+      return;
+    }
+
+    const previous = lookPointers.get(event.pointerId);
+    if (!previous) return;
+    camera.rotation.y -= (event.clientX - previous.x) * 0.005;
+    camera.rotation.x = THREE.MathUtils.clamp(
+      camera.rotation.x - (event.clientY - previous.y) * 0.005,
+      -Math.PI / 2 + 0.01,
+      Math.PI / 2 - 0.01,
+    );
+    previous.x = event.clientX;
+    previous.y = event.clientY;
+    event.preventDefault();
+  }) as EventListener);
+
+  function finishTouch(event: PointerEvent) {
+    if (event.pointerId === joystickPointer) {
+      joystickPointer = null;
+      joystick.x = joystick.y = 0;
+      joystickElement.classList.add("hidden");
+    }
+    lookPointers.delete(event.pointerId);
   }
-  holdButton("btn-forward", "forward");
-  holdButton("btn-back", "back");
-  holdButton("btn-left", "left");
-  holdButton("btn-right", "right");
+  on(canvas, "pointerup", ((event: PointerEvent) => finishTouch(event)) as EventListener);
+  on(canvas, "pointercancel", ((event: PointerEvent) => finishTouch(event)) as EventListener);
 
   function updateWalking(delta: number) {
     if (!started || paused) return;
@@ -228,11 +307,14 @@ export function mountStreet(host: HTMLDivElement) {
     camera.getWorldDirection(direction);
     direction.y = 0;
     direction.normalize();
-
-    if (keys.forward)
-      camera.position.addScaledVector(direction, WALK_SPEED * delta);
-    if (keys.back)
-      camera.position.addScaledVector(direction, -WALK_SPEED * delta);
+    const side = direction.clone().cross(new THREE.Vector3(0, 1, 0)).normalize();
+    const forwardAmount = Number(keys.forward) - Number(keys.back) - joystick.y;
+    const sideAmount = joystick.x;
+    const movement = direction
+      .multiplyScalar(forwardAmount)
+      .addScaledVector(side, sideAmount);
+    if (movement.lengthSq() > 1) movement.normalize();
+    camera.position.addScaledVector(movement, WALK_SPEED * delta);
 
     camera.position.x = Math.max(-3.5, Math.min(3.5, camera.position.x));
     camera.position.z = wrapStreetZ(camera.position.z);
@@ -281,26 +363,38 @@ export function mountStreet(host: HTMLDivElement) {
     }
   }
 
+  let playbackRequest = 0;
   on(listenBtn, "click", function () {
-    if (!current?.sound.buffer) return;
+    const selected = current;
+    if (!selected?.sound.buffer) return;
+    const request = ++playbackRequest;
     listening = true;
     paused = true;
-
-    if (current.sound.buffer) {
-      if (current.sound.isPlaying) current.sound.stop();
-      current.sound.setVolume(1);
-      current.sound.play();
-    }
-
-    choiceText.textContent = "Listening...";
+    keys.forward = keys.back = keys.left = keys.right = false;
+    joystick.x = joystick.y = 0;
+    choiceText.textContent = "Starting story…";
     listenBtn.classList.add("hidden");
     passBtn.textContent = "Continue walking";
+    void listener.context.resume().then(() => {
+      if (disposed || request !== playbackRequest || current !== selected) return;
+      if (selected.sound.isPlaying) selected.sound.stop();
+      selected.sound.setVolume(1);
+      selected.sound.play();
+      choiceText.textContent = "Listening…";
+    }).catch(() => {
+      if (disposed || request !== playbackRequest) return;
+      listening = false;
+      paused = false;
+      listenBtn.classList.remove("hidden");
+      element("audio-status").textContent = "Audio could not start. Try again or continue walking.";
+    });
   });
 
   on(passBtn, "click", function () {
     if (!current) return;
 
-    current.sound.setVolume(1);
+    playbackRequest++;
+    if (current.sound.isPlaying) current.sound.stop();
     passed.push(current);
     current = null;
     listening = false;
@@ -335,6 +429,8 @@ export function mountStreet(host: HTMLDivElement) {
   resize.observe(host);
   return () => {
     disposed = true;
+    window.clearTimeout(introTimer);
+    window.clearTimeout(fadeTimer);
     renderer.setAnimationLoop(null);
     resize.disconnect();
     removers.forEach((remove) => remove());

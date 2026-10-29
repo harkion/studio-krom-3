@@ -12,6 +12,7 @@
   display: block;
   width: 100%;
   height: 100%;
+  touch-action: none;
 }
 .sv-street button {
   background: #7b3fe4;
@@ -37,17 +38,35 @@
   position: absolute;
   inset: 0;
   z-index: 10;
-  background: #333351;
+  background: rgb(37 37 60 / 38%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 12px;
   text-align: center;
   padding: 24px;
+  transition:
+    opacity 650ms ease,
+    backdrop-filter 650ms ease,
+    background-color 650ms ease;
 }
-.sv-start h1 {
-  font-size: 32px;
+.sv-start p {
+  max-width: min(520px, 100%);
+  margin: 0;
+  color: #f2f0f8;
+  font-size: clamp(16px, 2vw, 21px);
+  line-height: 1.5;
+  text-shadow: 0 2px 12px #11101ccc;
+}
+.sv-start.leaving {
+  opacity: 0;
+  background: rgb(37 37 60 / 0%);
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  pointer-events: none;
 }
 .sv-start.hidden {
   display: none;
@@ -88,15 +107,59 @@
 .sv-choice button {
   margin: 10px 4px 0;
 }
-.sv-controls {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 8px;
+.sv-mobile-hint {
+  display: none;
 }
-.sv-controls button {
-  padding: 12px 18px;
-  touch-action: none;
+.sv-joystick {
+  position: absolute;
+  z-index: 4;
+  width: 112px;
+  height: 112px;
+  border: 2px solid #ffffff70;
+  border-radius: 50%;
+  background: #25253c99;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+.sv-joystick.hidden {
+  display: none;
+}
+.sv-joystick-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #7b3fe4;
+  box-shadow: 0 2px 8px #0006;
+  transform: translate(-50%, -50%);
+}
+@media (max-width: 768px), (pointer: coarse) {
+  .sv-start {
+    gap: 10px;
+    padding: 20px;
+  }
+  .sv-start p {
+    font-size: 16px;
+  }
+  .sv-desktop-hint {
+    display: none;
+  }
+  .sv-mobile-hint {
+    display: inline;
+  }
+  .sv-hint {
+    top: 8px;
+    font-size: 13px;
+  }
+  .sv-choice {
+    bottom: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-start {
+    transition-duration: 0.01ms;
+  }
 }
