@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Night / Light Eindhoven",
-    description: "NightLife Eindhoven safety mapping",
+    title: "Night Light",
+    description:
+        "A community-powered PWA celebrating the good moments, kind encounters, and stories of Eindhoven nightlife.",
 };
 
 export default function RootLayout({

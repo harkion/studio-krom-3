@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 0 72 72" width="64" height="64">
+<title>Night Light</title>
+<g stroke="#d8d4c8" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+<path d="M26 5h12M24 10h16M24 15h16M25 20h14"/>
+<path d="M25 25h14c0 9 12 14 12 24a19 19 0 0 1-38 0c0-10 12-15 12-24Z" transform="translate(0 -4)"/>
+</g>
+<path d="M20 34C16 43 20 54 31 55C40 56 46 50 47 44C41 52 24 51 20 34Z" fill="#f5cf8d"/>
+</svg>
