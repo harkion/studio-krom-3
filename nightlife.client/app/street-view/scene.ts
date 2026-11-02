@@ -39,7 +39,8 @@ export function mountStreet(
   const WALK_SPEED = 2.5;
   const TURN_SPEED = 1.5;
   const CHOICE_RANGE = 3.5;
-
+  const FULL_VOLUME_DISTANCE = 2; // closer than this (metres): full volume
+  const SILENT_DISTANCE = 8; // further than this (metres): no sound
   const scene = new THREE.Scene();
 
   const NIGHT = 0x6b6b8a;
@@ -131,7 +132,10 @@ export function mountStreet(
   const listener = new THREE.AudioListener();
   camera.add(listener);
   const audioLoader = new THREE.AudioLoader();
-
+  // Browsers keep sound off until the person presses a key or clicks.
+  // This turns the sound on at the first key press or click.
+  for (const eventName of ["keydown", "pointerdown", "pointerup"])
+    on(window, eventName, () => listener.context.resume());
   const installations: Station[] = storiesData.map(function (definition) {
     const inst = { ...definition } as Station;
 
@@ -147,8 +151,12 @@ export function mountStreet(
     inst.mesh.add(light);
 
     inst.sound = new THREE.PositionalAudio(listener);
-    inst.sound.setRefDistance(3);
-    inst.sound.setRolloffFactor(2);
+      // Full volume up close, then falling in a straight line to silence far away
+      inst.sound.setDistanceModel("linear");
+      inst.sound.setRefDistance(FULL_VOLUME_DISTANCE);
+      inst.sound.setMaxDistance(SILENT_DISTANCE);
+      inst.sound.setRolloffFactor(1);
+
     inst.sound.setLoop(true);
     inst.mesh.add(inst.sound);
 
@@ -326,43 +334,33 @@ export function mountStreet(
   let current: Station | null = null;
   let listening = false;
   const passed: Station[] = [];
+  const heard: Station[] = []; // stories you pressed Listen on
+  const listenLabel = listenBtn.textContent; // the normal text of the Listen button
 
     function checkNearbyInstallations() {
         if (!started) return;
 
+              // A story only plays when you are close to it (SILENT_DISTANCE).
+        // While the "listen or keep walking" box is open, only that story is heard.
         for (const inst of installations) {
-            if (!inst.sound.buffer) continue;
+          if (!inst.sound.buffer) continue;
 
-            const distance = camera.position.distanceTo(inst.mesh.position);
+          const distance = camera.position.distanceTo(inst.mesh.position);
+          if (distance > SILENT_DISTANCE && passed.includes(inst)) passed.splice(passed.indexOf(inst), 1);
+          const isClose = distance < SILENT_DISTANCE && !passed.includes(inst);
 
-            // Hearing range threshold 
-            const HEARING_RANGE = 20;
+          if (isClose && !inst.sound.isPlaying) inst.sound.play();
+          if (!isClose && inst.sound.isPlaying) inst.sound.stop();
 
-            if (distance < HEARING_RANGE) {
-                // Start playing automatically if within range and not already playing
-                if (!inst.sound.isPlaying) {
-                    try {
-                        listener.context.resume().then(() => {
-                            inst.sound.setVolume(1);
-                            inst.sound.play();
-                        });
-                    } catch (e) {
-                        console.error("Audio playback error:", e);
-                    }
-                }
-            } else {
-                // Stop playing when you walk far enough away to save resources
-                if (inst.sound.isPlaying) {
-                    inst.sound.stop();
-                }
-            }
-        }
-
+          const boxIsOpen = current !== null;
+          inst.sound.setVolume(boxIsOpen && inst !== current ? 0 : 1);
+      }
         // Keep your existing choice box logic if you still want the popup when very close (e.g., within 3.5 meters)
         let nearest: Station | null = null;
         let nearestDistance = 999;
 
         for (const inst of installations) {
+          if (passed.includes(inst)) continue;
             const distance = camera.position.distanceTo(inst.mesh.position);
             if (distance < nearestDistance) {
                 nearestDistance = distance;
@@ -373,6 +371,7 @@ export function mountStreet(
         if (nearest && nearestDistance < CHOICE_RANGE) {
             current = nearest;
             choiceText.textContent = nearest.title;
+            listenBtn.textContent = heard.includes(nearest) ? "Listen again" : listenLabel;
             choiceBox.classList.remove("hidden");
         } else {
             current = null;
@@ -384,6 +383,7 @@ export function mountStreet(
   on(listenBtn, "click", function () {
     const selected = current;
     if (!selected?.sound.buffer) return;
+    if (!heard.includes(selected)) heard.push(selected);
     const request = ++playbackRequest;
     listening = true;
     paused = true;
