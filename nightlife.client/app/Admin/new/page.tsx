@@ -24,7 +24,7 @@ export default async function AddNewStoryPage({
             const author_name = formData.get("author_name") || "Admin";
             const x = parseFloat(formData.get("x") as string) || 0;
             const z = parseFloat(formData.get("z") as string) || 0;
-
+            const color = formData.get("color") as string || 0;
             const file = formData.get("media_file") as File;
             let fileUrl = null;
 
@@ -59,7 +59,7 @@ export default async function AddNewStoryPage({
                 x,
                 z,
                 audio: fileUrl,
-                color: 0x6bd5ff,
+                color,
                 status: 'approved'
             });
 
@@ -138,6 +138,10 @@ export default async function AddNewStoryPage({
                         />
                     </div>
                 </div>
+                     <div>
+                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Story Color</label>
+                        <input type="text" name="color" className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-slate-500" />
+                    </div>
 
                 <div className="border-t border-slate-700/80 pt-6">
                     <label className="block text-xs font-semibold text-slate-400 uppercase mb-3">
