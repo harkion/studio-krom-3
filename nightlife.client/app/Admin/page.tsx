@@ -1,6 +1,7 @@
 ﻿import Link from "next/link";
 import { deleteStory, approveStory } from "./actions";
 import { supabase } from "@/lib/supabase";
+import LogoutButton from "./LogoutButton";
 
 export default async function AdminOverviewPage() {
     // 1. Fetch approved stories for the 3D loop
@@ -36,13 +37,10 @@ export default async function AdminOverviewPage() {
                     </p>
                 </div>
 
-                <Link
-                    href="/Admin/new"
-                    className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-full transition"
-                >
-                    + Add Curated Story
-                </Link>
+                <LogoutButton />
             </div>
+
+          
 
             {/* SECTION 1: PENDING SUBMISSIONS (Waiting for review) */}
             <div className="space-y-4">
