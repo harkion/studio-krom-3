@@ -45,7 +45,15 @@ export default function ReviewStoryPage() {
                 setCategory(data.category || '');
                 setAge(data.age?.toString() || '');
                 setGender(data.gender || '');
-                setOrbColor(data.color ||  '');
+                
+                // Safely convert database integer color back to a Hex string for the input
+                if (data.color) {
+                    const hexString = `#${Number(data.color).toString(16).padStart(6, '0')}`;
+                    setOrbColor(hexString);
+                }
+
+                if (data.x !== null && data.x !== undefined) setXCoord(data.x.toString());
+                if (data.z !== null && data.z !== undefined) setZCoord(data.z.toString());
             }
             setLoading(false);
         };
@@ -53,7 +61,7 @@ export default function ReviewStoryPage() {
         if (storyId) fetchPendingStory();
     }, [storyId]);
 
-const handlePublish = async () => {
+    const handlePublish = async () => {
         setPublishing(true);
         setErrorMsg('');
         let mediaUrl = null;
@@ -77,31 +85,36 @@ const handlePublish = async () => {
                 mediaUrl = publicUrlData.publicUrl;
             }
 
-            // 1. Convert the Hex string (#7ee0d1) to an Integer for your database
-            const colorInt = parseInt(orbColor.replace('#', ''), 16);
+            // Convert the Hex string (e.g. "#7ee0d1") to an integer for the int8 database column
+            let colorInt = 7067135;
+            if (orbColor) {
+                const cleanHex = orbColor.replace('#', '');
+                colorInt = parseInt(cleanHex, 16);
+            }
+// 2. Safely parse age (send null if the box is empty)
+            const parsedAge = age ? parseInt(age, 10) : null;
 
-            // 2. UPDATE the existing row instead of creating a new one
+            // UPDATE the existing row
             const { error: updateError } = await supabase
                 .from('stories') 
                 .update({
                     title: title,
                     narrative_text: storyText, 
-                    audio: mediaUrl,           
-                    x: parseFloat(xCoord),
-                    z: parseFloat(zCoord),
+                    audio: mediaUrl ? mediaUrl : undefined, // keeps old audio if no new file chosen
+                    x: parseFloat(xCoord) || 0,
+                    z: parseFloat(zCoord) || 0,
                     color: colorInt,           
                     status: 'approved',
-                    // Add these below status:
                     location_name: locationName,
                     author_name: authorName,
                     category: category,
-                    age: age,
+                    age: parsedAge,
                     gender: gender
                 })
                 .eq('id', storyId);
+
             if (updateError) throw new Error("Failed to publish to map: " + updateError.message);
 
-            // 3. Success! Kick the admin back to the main dashboard
             router.push('/Admin');
             router.refresh();
 
@@ -115,7 +128,6 @@ const handlePublish = async () => {
     const [declining, setDeclining] = useState(false);
 
     const handleDecline = async () => {
-        // Add a safety check so you don't accidentally click it
         const confirmDecline = window.confirm("Are you sure you want to decline and permanently delete this story?");
         if (!confirmDecline) return;
 
@@ -130,7 +142,6 @@ const handlePublish = async () => {
 
             if (deleteError) throw new Error("Failed to decline story: " + deleteError.message);
 
-            // Success! Send back to dashboard
             router.push('/Admin');
             router.refresh();
         } catch (err) {
@@ -152,54 +163,55 @@ const handlePublish = async () => {
                         {errorMsg}
                     </div>
                 )}
-{/* User Demographics & Location Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-[#101820] border border-[#35434f] rounded-xl mb-6">
-                        <div>
-                            <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Author Name</label>
-                            <input
-                                type="text"
-                                value={authorName}
-                                onChange={(e) => setAuthorName(e.target.value)}
-                                className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Age</label>
-                            <input
-                                type="text"
-                                value={age}
-                                onChange={(e) => setAge(e.target.value)}
-                                className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Gender</label>
-                            <input
-                                type="text"
-                                value={gender}
-                                onChange={(e) => setGender(e.target.value)}
-                                className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
-                            />
-                        </div>
-                        <div className="col-span-2 md:col-span-2">
-                            <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Location Name</label>
-                            <input
-                                type="text"
-                                value={locationName}
-                                onChange={(e) => setLocationName(e.target.value)}
-                                className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Category</label>
-                            <input
-                                type="text"
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
-                            />
-                        </div>
+
+                {/* User Demographics & Location Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-[#101820] border border-[#35434f] rounded-xl mb-6">
+                    <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Author Name</label>
+                        <input
+                            type="text"
+                            value={authorName}
+                            onChange={(e) => setAuthorName(e.target.value)}
+                            className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
+                        />
                     </div>
+                    <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Age</label>
+                        <input
+                            type="text"
+                            value={age}
+                            onChange={(e) => setAge(e.target.value)}
+                            className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Gender</label>
+                        <input
+                            type="text"
+                            value={gender}
+                            onChange={(e) => setGender(e.target.value)}
+                            className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
+                        />
+                    </div>
+                    <div className="col-span-2 md:col-span-2">
+                        <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Location Name</label>
+                        <input
+                            type="text"
+                            value={locationName}
+                            onChange={(e) => setLocationName(e.target.value)}
+                            className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-[#aab8c4] font-bold mb-1">Category</label>
+                        <input
+                            type="text"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            className="w-full bg-transparent border-b border-[#35434f] p-1 text-sm focus:outline-none focus:border-[#7ee0d1]"
+                        />
+                    </div>
+                </div>
 
                 <form className="space-y-6">
                     <div>
@@ -221,19 +233,46 @@ const handlePublish = async () => {
                             className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-sm focus:outline-none focus:border-[#7ee0d1]"
                         />
                     </div>
-                            <div>
-                        <label className="block text-xs font-bold mb-2">Story color</label>
+
+                    {/* Coordinates X and Z */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold mb-2">X Coordinate</label>
+                            <input
+                                type="number"
+                                step="any"
+                                value={xCoord}
+                                onChange={(e) => setXCoord(e.target.value)}
+                                className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-sm focus:outline-none focus:border-[#7ee0d1]"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold mb-2">Z Coordinate</label>
+                            <input
+                                type="number"
+                                step="any"
+                                value={zCoord}
+                                onChange={(e) => setZCoord(e.target.value)}
+                                className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-sm focus:outline-none focus:border-[#7ee0d1]"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold mb-2">Story Color (Hex)</label>
                         <input
                             type="text"
                             value={orbColor}
                             onChange={(e) => setOrbColor(e.target.value)}
+                            placeholder="#7ee0d1"
                             className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-sm focus:outline-none focus:border-[#7ee0d1]"
                         />
+                        <p className="text-[10px] text-slate-400 mt-1">Enter a hex code like #7ee0d1</p>
                     </div>
 
-                    {/* Audio File Input */}
+                    {/* Audio/Video File Input */}
                     <div>
-                        <label className="block text-xs font-bold mb-2">Attach Audio Narration (Optional)</label>
+                        <label className="block text-xs font-bold mb-2">Attach Media Narration (Optional)</label>
                         <input
                             type="file"
                             accept="audio/*, video/*"

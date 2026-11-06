@@ -26,8 +26,8 @@ export default async function AdminOverviewPage() {
     return (
         <div className="w-full min-h-screen flex flex-col justify-start pt-24 px-8 pb-12 max-w-6xl mx-auto space-y-12">
 
-            {/* Header section */}
-            <div className="flex justify-between items-end">
+{/* Header section */}
+            <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-serif text-white tracking-tight">
                         Admin Story Dashboard
@@ -36,10 +36,17 @@ export default async function AdminOverviewPage() {
                         Manage live 3D stories and review community submissions.
                     </p>
                 </div>
-                                        <Link href={`/Admin/new`} className="text-blue-400 hover:text-blue-300 text-sm font-medium">
-                                            Add New Curated Story
-                                        </Link>
-                <LogoutButton />
+                
+                {/* Right side buttons aligned together */}
+                <div className="flex items-center gap-4">
+                    <Link 
+                        href={`/Admin/new`} 
+                        className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-sm font-medium rounded-full transition shadow-sm flex items-center gap-2"
+                    >
+                        <span>+ Add New Curated Story</span>
+                    </Link>
+                    <LogoutButton />
+                </div>
             </div>
 
           

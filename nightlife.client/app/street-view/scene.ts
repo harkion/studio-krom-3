@@ -7,6 +7,8 @@ export type StoryData = {
   title: string;
   audio: string | null;
   color: number;
+  age: number | null;
+  gender: string | null;
 };
 
 export function mountStreet(
@@ -31,6 +33,8 @@ export function mountStreet(
     title: string;
     audio: string | null;
     color: number;
+    age: number | null;
+    gender: string | null;
     mesh: THREE.Mesh;
     baseY: number;
     sound: THREE.PositionalAudio;
@@ -367,10 +371,20 @@ export function mountStreet(
                 nearest = inst;
             }
         }
-
-        if (nearest && nearestDistance < CHOICE_RANGE) {
+if (nearest && nearestDistance < CHOICE_RANGE) {
             current = nearest;
-            choiceText.textContent = nearest.title;
+            
+            // Format demographics text if available
+            const demographics = [
+                nearest.age ? `Age ${nearest.age}` : null,
+                nearest.gender ? nearest.gender : null
+            ].filter(Boolean).join(", ");
+
+            // Display demographics above the title
+            choiceText.textContent = demographics 
+                ? `${demographics} — "${nearest.title}"` 
+                : nearest.title;
+
             listenBtn.textContent = heard.includes(nearest) ? "Listen again" : listenLabel;
             choiceBox.classList.remove("hidden");
         } else {
