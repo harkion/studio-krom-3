@@ -53,7 +53,7 @@ export default function ShareStoryPage() {
                 status: 'pending', // Keeps it out of the live 3D view until admin approves
                 x: 0,             // Default coordinates for the admin map placement
                 z: -10,
-                color: formData.color || null,
+                color: 0x7ee0d1, // Default orb colour; admins can change it during review.
                 audio: null, // No audio for user submissions
                 age: parseInt(formData.age, 10) || null,
                 gender: formData.gender || null,

@@ -34,3 +34,23 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Before merging into main
+
+Run these commands from `nightlife.client` with your local environment variables configured:
+
+```bash
+npm ci
+npm run typecheck
+npm run build
+```
+
+`npm run dev` is not a production build check. Fix build failures before merging.
+The GitHub workflow runs `Client TypeScript` on pushes and pull requests, without database credentials.
+Vercel Preview checks the full production build with its configured environment variables.
+
+A repository administrator should protect `main`: require pull requests, require
+`Client TypeScript` and the Vercel preview check to pass, and require branches to
+be up to date before merging. Select the actual Vercel check name shown on a pull request.
+The workflow alone reports failures; it does not block merges until required checks are configured.
+Do not disable TypeScript build errors to make a deployment pass.
