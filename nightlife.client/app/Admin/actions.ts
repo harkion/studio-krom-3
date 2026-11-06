@@ -20,6 +20,15 @@ export async function deleteStory(id: number) {
 }
 
 export async function updateStory(id: number, formData: FormData) {
+
+    const colorInput = formData.get('color') as string;
+
+    // 2. Convert Hex string to an integer for the int8 column
+    let colorInt = 7067135; // fallback default
+    if (colorInput) {
+        const cleanHex = colorInput.replace('#', '');
+        colorInt = parseInt(cleanHex, 16);
+    }
     const title = formData.get("title");
     const location_name = formData.get("location_name");
     const category = formData.get("category");
@@ -27,6 +36,7 @@ export async function updateStory(id: number, formData: FormData) {
     const author_name = formData.get("author_name") || "Admin";
     const x = parseFloat(formData.get("x") as string) || 0;
     const z = parseFloat(formData.get("z") as string) || 0;
+    const color = colorInt;
 
     // Supabase UPDATE query
     const { error } = await supabase
@@ -38,7 +48,8 @@ export async function updateStory(id: number, formData: FormData) {
             narrative_text,
             author_name,
             x,
-            z
+            z,
+            color
         })
         .eq('id', id);
 

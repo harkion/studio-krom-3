@@ -24,6 +24,14 @@ export default async function AddNewStoryPage({
             const author_name = formData.get("author_name") || "Admin";
             const x = parseFloat(formData.get("x") as string) || 0;
             const z = parseFloat(formData.get("z") as string) || 0;
+            
+            // Convert Hex string (e.g. "#7ee0d1") to an integer (int8) for the database
+            const colorInput = formData.get("color") as string;
+            let colorInt = 7067135; // Default fallback color if blank
+            if (colorInput) {
+                const cleanHex = colorInput.replace('#', '');
+                colorInt = parseInt(cleanHex, 16);
+            }
 
             const file = formData.get("media_file") as File;
             let fileUrl = null;
@@ -49,7 +57,7 @@ export default async function AddNewStoryPage({
                 fileUrl = publicUrl;
             }
 
-            // Supabase insert query with the permanent cloud file URL
+            // Supabase insert query with the permanent cloud file URL and parsed color int
             const { error } = await supabase.from('stories').insert({
                 title,
                 location_name,
@@ -59,7 +67,7 @@ export default async function AddNewStoryPage({
                 x,
                 z,
                 audio: fileUrl,
-                color: 0x6bd5ff,
+                color: colorInt,
                 status: 'approved'
             });
 
@@ -137,6 +145,18 @@ export default async function AddNewStoryPage({
                             className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200"
                         />
                     </div>
+                </div>
+                
+                <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Story Color (Hex)</label>
+                    <input 
+                        type="text" 
+                        name="color" 
+                        defaultValue="#7ee0d1" 
+                        placeholder="#7ee0d1"
+                        className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-slate-500" 
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">Enter a hex code like #7ee0d1</p>
                 </div>
 
                 <div className="border-t border-slate-700/80 pt-6">

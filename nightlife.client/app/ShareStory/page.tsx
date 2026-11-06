@@ -15,7 +15,7 @@ export default function ShareStoryPage() {
         publicDisplayName: '',
         hasConsented: false,
         age: '',
-        gender: 'female',
+        gender: '',
     });
 
     const [submitting, setSubmitting] = useState(false);
@@ -53,7 +53,10 @@ export default function ShareStoryPage() {
                 status: 'pending', // Keeps it out of the live 3D view until admin approves
                 x: 0,             // Default coordinates for the admin map placement
                 z: -10,
-                color: 0x6bd5ff,
+                color: formData.color || null,
+                audio: null, // No audio for user submissions
+                age: parseInt(formData.age, 10) || null,
+                gender: formData.gender || null,
             });
 
             if (error) {
