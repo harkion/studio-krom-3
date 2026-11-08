@@ -79,21 +79,25 @@ export function mountStreet(
     new THREE.MeshStandardMaterial({ color: 0x4a4a58 }),
   );
 
-// Create an "End of Loop / Feedback" button overlay dynamically
-const surveyTriggerBtn = document.createElement("button");
-surveyTriggerBtn.textContent = "End Loop & Feedback";
-surveyTriggerBtn.className = "absolute bottom-6 right-6 px-4 py-2 bg-slate-800/90 hover:bg-slate-700 backdrop-blur border border-slate-600 rounded-full text-xs text-white shadow-lg transition z-30 font-sans pointer-events-auto cursor-pointer";
+  // Only the full street experience needs the feedback button.
+  // Keep the homepage preview absolutely positioned behind its text.
+  if (!options.preview) {
+    // Create an "End of Loop / Feedback" button overlay dynamically
+    const surveyTriggerBtn = document.createElement("button");
+    surveyTriggerBtn.textContent = "End Loop & Feedback";
+    surveyTriggerBtn.className = "absolute bottom-6 right-6 px-4 py-2 bg-slate-800/90 hover:bg-slate-700 backdrop-blur border border-slate-600 rounded-full text-xs text-white shadow-lg transition z-30 font-sans pointer-events-auto cursor-pointer";
 
-// Stop click and pointer events from bleeding through to the Three.js canvas underneath
-surveyTriggerBtn.addEventListener("pointerdown", (e) => e.stopPropagation());
-surveyTriggerBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    // Dispatch custom event to parent React page
-    host.dispatchEvent(new CustomEvent("open-survey"));
-});
+    // Stop click and pointer events from bleeding through to the Three.js canvas underneath
+    surveyTriggerBtn.addEventListener("pointerdown", (e) => e.stopPropagation());
+    surveyTriggerBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // Dispatch custom event to parent React page
+        host.dispatchEvent(new CustomEvent("open-survey"));
+    });
 
-host.style.position = "relative"; 
-host.appendChild(surveyTriggerBtn);
+    host.style.position = "relative";
+    host.appendChild(surveyTriggerBtn);
+  }
 
   floor.rotation.x = -Math.PI / 2;
   floor.position.z = -WORLD_LENGTH / 2;
