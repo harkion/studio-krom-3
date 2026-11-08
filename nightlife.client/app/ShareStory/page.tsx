@@ -14,6 +14,7 @@ export default function ShareStoryPage() {
         anonymityOption: 'anonymous',
         publicDisplayName: '',
         hasConsented: false,
+        aiNarrationConsent: false, // <-- 1. Added to state
         age: '',
         gender: '',
     });
@@ -57,6 +58,7 @@ export default function ShareStoryPage() {
                 audio: null, // No audio for user submissions
                 age: parseInt(formData.age, 10) || null,
                 gender: formData.gender || null,
+                ai_narration_consent: formData.aiNarrationConsent, // <-- 2. Added to database insert
             });
 
             if (error) {
@@ -380,6 +382,24 @@ export default function ShareStoryPage() {
                                 </span>
                             </label>
                         </div>
+
+                        {/* AI Narration Checkbox */}
+                        <div className="flex items-start gap-3 p-4 bg-slate-800/50 border border-slate-700 rounded-xl mb-6">
+                            <input 
+                                type="checkbox" 
+                                id="ai_narration_consent" 
+                                name="aiNarrationConsent" // <-- 3. Bound to state key
+                                checked={formData.aiNarrationConsent} // <-- 4. Controlled by React state
+                                onChange={handleChange} // <-- 5. Linked to handler
+                                className="mt-1 w-4 h-4 accent-[#7ee0d1] cursor-pointer"
+                            />
+                            <label htmlFor="ai_narration_consent" className="text-xs text-slate-300 cursor-pointer">
+                                <span className="block font-bold text-white mb-1">Allow AI Audio Narration</span>
+                                I consent to having an AI voice narrate my story for the 3D loop if selected. 
+                                (If unchecked, your story will remain text-only unless you upload your own audio).
+                            </label>
+                        </div>
+
 
                         {/* Card Footer Actions */}
                         <div className="pt-4 border-t border-[#2d3b47] flex items-center justify-between">

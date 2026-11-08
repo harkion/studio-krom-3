@@ -26,6 +26,9 @@ export default function ReviewStoryPage() {
     const [category, setCategory] = useState('');
     const [age, setAge] = useState('');
     const [gender, setGender] = useState('');
+    
+    // NEW: State for AI consent
+    const [aiConsent, setAiConsent] = useState(false);
 
     useEffect(() => {
         const fetchPendingStory = async () => {
@@ -45,6 +48,9 @@ export default function ReviewStoryPage() {
                 setCategory(data.category || '');
                 setAge(data.age?.toString() || '');
                 setGender(data.gender || '');
+                
+                // NEW: Load the AI consent boolean
+                setAiConsent(data.ai_narration_consent || false);
                 
                 // Safely convert database integer color back to a Hex string for the input
                 if (data.color) {
@@ -91,7 +97,8 @@ export default function ReviewStoryPage() {
                 const cleanHex = orbColor.replace('#', '');
                 colorInt = parseInt(cleanHex, 16);
             }
-// 2. Safely parse age (send null if the box is empty)
+
+            // Safely parse age (send null if the box is empty)
             const parsedAge = age ? parseInt(age, 10) : null;
 
             // UPDATE the existing row
@@ -268,6 +275,32 @@ export default function ReviewStoryPage() {
                             className="w-full bg-[#101820] border border-[#35434f] rounded-xl p-3 text-sm focus:outline-none focus:border-[#7ee0d1]"
                         />
                         <p className="text-[10px] text-slate-400 mt-1">Enter a hex code like #7ee0d1</p>
+                    </div>
+
+                    {/* NEW: AI Narration Consent Badge */}
+                    <div>
+                        <label className="block text-xs font-bold mb-2">AI Narration Consent</label>
+                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${
+                            aiConsent 
+                                ? 'bg-[#7ee0d1]/10 border-[#7ee0d1]/50 text-[#7ee0d1]' 
+                                : 'bg-[#101820] border-[#35434f] text-[#aab8c4]'
+                        }`}>
+                            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {aiConsent ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                )}
+                            </svg>
+                            <span className="text-xs font-bold uppercase tracking-wider">
+                                {aiConsent ? 'User Consent Granted' : 'Consent Denied / Not Provided'}
+                            </span>
+                        </div>
+                        {!aiConsent && (
+                            <p className="text-[10px] text-slate-500 mt-1">
+                                You must attach custom media below instead of generating AI audio.
+                            </p>
+                        )}
                     </div>
 
                     {/* Audio/Video File Input */}
