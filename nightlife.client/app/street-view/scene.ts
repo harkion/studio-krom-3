@@ -7,6 +7,9 @@ export type StoryData = {
   z: number;
   title: string;
   audio: string | null;
+  // Optional narration metadata lets the interface label generated recordings.
+  audio_status?: string | null;
+  voice_id?: string | null;
   color: number;
   age: number | null;
   gender: string | null;
@@ -33,6 +36,8 @@ export function mountStreet(
     z: number;
     title: string;
     audio: string | null;
+    audio_status?: string | null;
+    voice_id?: string | null;
     color: number;
     age: number | null;
     gender: string | null;
@@ -402,6 +407,8 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
             choiceText.textContent = demographics 
                 ? `${demographics} — "${nearest.title}"` 
                 : nearest.title;
+            // Tell visitors this recording uses an AI narrator; playback stays unchanged.
+            if (nearest.audio_status === "ready" && nearest.voice_id) choiceText.textContent += " — AI-narrated";
 
             listenBtn.textContent = heard.includes(nearest) ? "Listen again" : listenLabel;
             choiceBox.classList.remove("hidden");
@@ -429,7 +436,7 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
       if (selected.sound.isPlaying) selected.sound.stop();
       selected.sound.setVolume(1);
       selected.sound.play();
-      choiceText.textContent = "Listening…";
+      choiceText.textContent = selected.audio_status === "ready" && selected.voice_id ? "Listening — AI-narrated story…" : "Listening…";
     }).catch(() => {
       if (disposed || request !== playbackRequest) return;
       listening = false;
