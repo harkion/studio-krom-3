@@ -163,10 +163,15 @@ export function mountStreet(
   const listener = new THREE.AudioListener();
   camera.add(listener);
   const audioLoader = new THREE.AudioLoader();
+  let audioPaused = false; // true while the person pressed Pause
+  let muted = false; // true while the person pressed Mute
   // Browsers keep sound off until the person presses a key or clicks.
-  // This turns the sound on at the first key press or click.
+  // This turns the sound on at the first key press or click,
+  // unless the person pressed Pause.
   for (const eventName of ["keydown", "pointerdown", "pointerup"])
-    on(window, eventName, () => listener.context.resume());
+    on(window, eventName, () => {
+      if (!audioPaused) listener.context.resume();
+    });
   const installations: Station[] = storiesData.map(function (definition) {
     const inst = { ...definition } as Station;
 
@@ -427,6 +432,7 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
     const selected = current;
     if (!selected?.sound.buffer) return;
     if (!heard.includes(selected)) heard.push(selected);
+    setAudioPaused(false); // pressing Listen always turns the sound back on
     const request = ++playbackRequest;
     listening = true;
     paused = true;
@@ -465,6 +471,50 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
     passBtn.textContent = "Keep walking";
     choiceBox.classList.add("hidden");
   });
+  // ---- Sound controls: pause, mute, exit ----
+  const controls = document.createElement("div");
+  controls.style.cssText =
+    "position:absolute;top:16px;right:16px;display:flex;gap:8px;z-index:20;";
+  host.appendChild(controls);
+
+  function makeButton(label: string, onClick: (button: HTMLButtonElement) => void): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.textContent = label;
+    button.style.cssText =
+      "padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.4);" +
+      "background:rgba(20,20,40,0.7);color:white;font-size:14px;cursor:pointer;";
+    on(button, "click", () => {
+      onClick(button);
+      host.focus(); // so the walking keys keep working after a click
+    });
+    controls.appendChild(button);
+    return button;
+  }
+
+  // Pause / Play: freezes all sound, and carries on from the same place.
+  function setAudioPaused(value: boolean): void {
+    audioPaused = value;
+    if (value) void listener.context.suspend();
+    else void listener.context.resume();
+    pauseButton.textContent = value ? "▶ Play" : "⏸ Pause";
+  }
+  const pauseButton = makeButton("⏸ Pause", () => setAudioPaused(!audioPaused));
+
+  // Mute / Unmute: the sound keeps running but you hear nothing.
+  makeButton("Mute", (button) => {
+    muted = !muted;
+    listener.setMasterVolume(muted ? 0 : 1);
+    button.textContent = muted ? "Unmute" : "Mute";
+  });
+
+  // Exit: stop every story and go back to the map.
+  makeButton("✕ Exit", () => {
+    installations.forEach((inst) => {
+      if (inst.sound.isPlaying) inst.sound.stop();
+    });
+    window.location.href = "/map";
+  });
+
 
   const clock = new THREE.Clock();
 
@@ -491,6 +541,7 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
     disposed = true;
     window.clearTimeout(introTimer);
     window.clearTimeout(fadeTimer);
+    controls.remove();
     renderer.setAnimationLoop(null);
     resize.disconnect();
     removers.forEach((remove) => remove());
