@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { deleteStory, approveStory } from "./actions";
+import { deleteStory } from "./actions";
 import { supabase } from "@/lib/supabase";
 import LogoutButton from "./LogoutButton";
 
@@ -147,6 +147,10 @@ export default async function AdminOverviewPage() {
                                     <td className="px-6 py-4 text-right space-x-4">
                                         <Link href={`/Admin/edit/${story.id}`} className="text-blue-400 hover:text-blue-300 text-sm font-medium">
                                             Edit
+                                        </Link>
+                                        {/* Open narration separately for an already approved story. */}
+                                        <Link href={`/Admin/narration/${story.id}`} className="text-[#7ee0d1] hover:text-white text-sm font-medium">
+                                            Narration
                                         </Link>
                                         <form action={deleteStory.bind(null, story.id)} className="inline">
                                             <button type="submit" className="text-red-400 hover:text-red-300 text-sm font-medium">

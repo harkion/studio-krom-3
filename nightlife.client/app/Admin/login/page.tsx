@@ -13,21 +13,25 @@ export default function AdminLoginPage() {
 
 const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted! The function is running."); 
+
     setLoading(true);
 
 
     try {
+        // Supabase stores the session for the narration controls to use.
+        // Never log the response: it contains the private login token.
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
-            console.log("Supabase response:", data, error);
+
 
         if (error) {
             // If Supabase rejects it (like that 400 error), capture the message
             setErrorMsg(error.message);
         } else {
+            // This cookie is only a navigation check; the narration API independently
+            // verifies the session and admin role before allowing generation.
             // 1. Manually set a cookie so the Next.js Middleware bouncer can see you are logged in
             document.cookie = `sb-auth-token=${data.session.access_token}; path=/; max-age=86400; SameSite=Lax; secure`;
             

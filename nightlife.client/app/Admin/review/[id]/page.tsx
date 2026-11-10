@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { NarrationPanel, useNarration } from '../../NarrationControls';
 
 export default function ReviewStoryPage() {
     const params = useParams();
     const router = useRouter();
-    const storyId = params.id;
+    const storyId = Array.isArray(params.id) ? params.id[0] : params.id || '';
+    // Load the shared narrator selection, saved audio and AI permission for this story.
+    const narration = useNarration(storyId);
 
     const [title, setTitle] = useState('');
     const [storyText, setStoryText] = useState('');
@@ -121,6 +124,17 @@ export default function ReviewStoryPage() {
                 .eq('id', storyId);
 
             if (updateError) throw new Error("Failed to publish to map: " + updateError.message);
+
+            // Only request AI narration after publishing succeeds. Keep uploaded/existing audio,
+            // and generate only when the separate AI permission is explicitly recorded.
+            if (!mediaFile && !narration.info?.audio && narration.info?.consent) {
+                try {
+                    await narration.generate();
+                } catch {
+                    setErrorMsg('The written story was published, but its narration is not ready. See the narration message below. You can return to the dashboard and retry from Narration.');
+                    return;
+                }
+            }
 
             router.push('/Admin');
             router.refresh();
@@ -277,7 +291,8 @@ export default function ReviewStoryPage() {
                         <p className="text-[10px] text-slate-400 mt-1">Enter a hex code like #7ee0d1</p>
                     </div>
 
-                    {/* NEW: AI Narration Consent Badge */}
+
+                    {/* AI Narration Consent Badge */}
                     <div>
                         <label className="block text-xs font-bold mb-2">AI Narration Consent</label>
                         <div className={`flex items-center gap-3 p-3 rounded-xl border ${
@@ -302,6 +317,10 @@ export default function ReviewStoryPage() {
                             </p>
                         )}
                     </div>
+
+                    {/* Choose the narrator here; Accept & Publish starts generation. */}
+                    <NarrationPanel narration={narration} onApproval disabled={publishing || declining} />
+
 
                     {/* Audio/Video File Input */}
                     <div>
@@ -341,7 +360,7 @@ export default function ReviewStoryPage() {
                                 disabled={publishing || declining}
                                 className="px-6 py-3 bg-[#7ee0d1] hover:bg-[#66d4c5] disabled:bg-[#35434f] text-[#102029] font-medium rounded-xl text-sm transition"
                             >
-                                {publishing ? 'Publishing...' : 'Accept & Publish'}
+                                {narration.busy ? 'Generating narration...' : publishing ? 'Publishing...' : 'Accept & Publish'}
                             </button>
                         </div>
                     </div>
