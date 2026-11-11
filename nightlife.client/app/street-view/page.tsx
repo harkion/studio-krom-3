@@ -10,6 +10,7 @@ export default function StreetView() {
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
   
+  const [loopComplete, setLoopComplete] = useState(false);
   // <-- Add state to control the survey modal
   const [showSurvey, setShowSurvey] = useState(false);
 
@@ -25,7 +26,7 @@ export default function StreetView() {
         import("./scene")
             .then(({ mountStreet }) => {
                 if (cancelled || !host.current) return;
-                cleanup = mountStreet(host.current, storiesData);
+                cleanup = mountStreet(host.current, storiesData, { onLoopComplete: () => setLoopComplete(true) });
             })
             .catch(() => {
                 if (!cancelled)
@@ -55,6 +56,7 @@ export default function StreetView() {
         {error && <p role="alert">{error}</p>}
       </div>
       
+      <div id="street-toolbar" className="sv-toolbar">
       <p className="sv-hint">
         <span id="area-name">Station</span>
         <span className="sv-desktop-hint">
@@ -66,6 +68,7 @@ export default function StreetView() {
       </p>
       
       <p id="audio-status" className="sv-status" role="status" />
+      </div>
       
       <div id="choice-box" className="sv-choice hidden">
         <p id="choice-text" />
@@ -78,12 +81,12 @@ export default function StreetView() {
       </div>
 
       {/* --- ADDED: Native React Button to trigger the Survey --- */}
-      <button 
-          onClick={() => setShowSurvey(true)}
-          className="absolute bottom-6 right-6 px-4 py-2 bg-slate-800/90 hover:bg-slate-700 backdrop-blur border border-slate-600 rounded-full text-xs text-white shadow-lg transition z-40 font-sans cursor-pointer pointer-events-auto"
-      >
-          End Loop & Feedback
-      </button>
+      {/* Only the full street experience needs the feedback button. */}
+      {loopComplete && (
+        <button className="sv-feedback" onClick={() => setShowSurvey(true)}>
+          End Loop &amp; Feedback
+        </button>
+      )}
 
       {/* --- ADDED: The Courage Survey Modal Overlay --- */}
       {showSurvey && (
