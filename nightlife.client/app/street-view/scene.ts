@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { wrapStreetZ, streetArea, WORLD_LENGTH } from "./loop-path";
-import CourageSurvey from "@/components/CourageSurvey";
 
 export type StoryData = {
   x: number;
@@ -18,7 +17,7 @@ export type StoryData = {
 export function mountStreet(
   host: HTMLDivElement,
   storiesData: StoryData[],
-  options: { preview?: boolean } = {},
+  options: { preview?: boolean; onLoopComplete?: () => void } = {},
 ) {
   let disposed = false;
   let introTimer = 0;
@@ -46,7 +45,7 @@ export function mountStreet(
     sound: THREE.PositionalAudio;
   };
   let started = false;
-  const WALK_SPEED = 2.5;
+  const WALK_SPEED = 4.5;
   const TURN_SPEED = 1.5;
   const CHOICE_RANGE = 3.5;
   const FULL_VOLUME_DISTANCE = 2; // closer than this (metres): full volume
@@ -78,26 +77,6 @@ export function mountStreet(
     new THREE.PlaneGeometry(10, WORLD_LENGTH * 3 + 20),
     new THREE.MeshStandardMaterial({ color: 0x4a4a58 }),
   );
-
-  // Only the full street experience needs the feedback button.
-  // Keep the homepage preview absolutely positioned behind its text.
-  if (!options.preview) {
-    // Create an "End of Loop / Feedback" button overlay dynamically
-    const surveyTriggerBtn = document.createElement("button");
-    surveyTriggerBtn.textContent = "End Loop & Feedback";
-    surveyTriggerBtn.className = "absolute bottom-6 right-6 px-4 py-2 bg-slate-800/90 hover:bg-slate-700 backdrop-blur border border-slate-600 rounded-full text-xs text-white shadow-lg transition z-30 font-sans pointer-events-auto cursor-pointer";
-
-    // Stop click and pointer events from bleeding through to the Three.js canvas underneath
-    surveyTriggerBtn.addEventListener("pointerdown", (e) => e.stopPropagation());
-    surveyTriggerBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        // Dispatch custom event to parent React page
-        host.dispatchEvent(new CustomEvent("open-survey"));
-    });
-
-    host.style.position = "relative";
-    host.appendChild(surveyTriggerBtn);
-  }
 
   floor.rotation.x = -Math.PI / 2;
   floor.position.z = -WORLD_LENGTH / 2;
@@ -136,6 +115,7 @@ export function mountStreet(
   scene.add(placeholder);
 
   // The homepage renders the street scenery without story bubbles, controls or audio.
+  // Keep the homepage preview absolutely positioned behind its text.
   if (options.preview) {
     const draw = () => {
       camera.aspect = host.clientWidth / Math.max(1, host.clientHeight);
@@ -336,6 +316,11 @@ export function mountStreet(
   on(canvas, "pointerup", ((event: PointerEvent) => finishTouch(event)) as EventListener);
   on(canvas, "pointercancel", ((event: PointerEvent) => finishTouch(event)) as EventListener);
 
+  let distanceZ = 0;
+  let lowestZ = 0;
+  let highestZ = 0;
+  let completed = false;
+
   function updateWalking(delta: number) {
     if (!started || paused) return;
 
@@ -356,6 +341,15 @@ export function mountStreet(
     camera.position.addScaledVector(movement, WALK_SPEED * delta);
 
     camera.position.x = Math.max(-3.5, Math.min(3.5, camera.position.x));
+    // Measure the stretch of road covered before the camera wraps.
+    distanceZ += movement.z * WALK_SPEED * delta;
+    lowestZ = Math.min(lowestZ, distanceZ);
+    highestZ = Math.max(highestZ, distanceZ);
+    if (!completed && highestZ - lowestZ >= WORLD_LENGTH) {
+      completed = true;
+      // Tell the parent React page it can show the feedback button.
+      options.onLoopComplete?.();
+    }
     camera.position.z = wrapStreetZ(camera.position.z);
     const label = element("area-name");
     const area = streetArea(camera.position.z);
@@ -379,10 +373,12 @@ export function mountStreet(
               // A story only plays when you are close to it (SILENT_DISTANCE).
         // While the "listen or keep walking" box is open, only that story is heard.
         for (const inst of installations) {
-          if (!inst.sound.buffer) continue;
+          // Keep each story and its attached audio on the closest copy of the street.
+          inst.mesh.position.z = inst.z + WORLD_LENGTH * Math.round((camera.position.z - inst.z) / WORLD_LENGTH);
 
           const distance = camera.position.distanceTo(inst.mesh.position);
           if (distance > SILENT_DISTANCE && passed.includes(inst)) passed.splice(passed.indexOf(inst), 1);
+          if (!inst.sound.buffer) continue;
           const isClose = distance < SILENT_DISTANCE && !passed.includes(inst);
 
           if (isClose && !inst.sound.isPlaying) inst.sound.play();
@@ -473,9 +469,8 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
   });
   // ---- Sound controls: pause, mute, exit ----
   const controls = document.createElement("div");
-  controls.style.cssText =
-    "position:absolute;top:16px;right:16px;display:flex;gap:8px;z-index:20;";
-  host.appendChild(controls);
+  controls.className = "sv-controls";
+  element("street-toolbar").appendChild(controls);
 
   function makeButton(label: string, onClick: (button: HTMLButtonElement) => void): HTMLButtonElement {
     const button = document.createElement("button");

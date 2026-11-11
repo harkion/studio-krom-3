@@ -163,7 +163,7 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
                         <div className="pt-4 border-t border-[#35434f] space-y-3">
                             <p className="text-xs text-slate-400">Have your own experience to add to the loop?</p>
                             <Link 
-                                href="/share" 
+                                href="/ShareStory" 
                                 className="inline-block w-full py-3 !bg-slate-800 hover:!bg-slate-700 border !border-slate-600 !text-white font-medium rounded-xl text-xs uppercase tracking-wider transition text-center"
                             >
                                 Share Your Own Story
