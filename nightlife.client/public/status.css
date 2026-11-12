@@ -1,0 +1,97 @@
+/* A still from our street keeps the scene available even during maintenance. */
+.nl-status {
+  box-sizing: border-box;
+  flex: 1;
+  width: 100%;
+  min-height: 85svh;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 1.15rem;
+  padding: clamp(2rem, 7vw, 7rem);
+  background:
+    linear-gradient(
+      90deg,
+      #101820 5%,
+      rgba(16, 24, 32, 0.96) 30%,
+      rgba(16, 24, 32, 0.72) 49%,
+      transparent 75%
+    ),
+    url("/status-street.webp") center right / cover no-repeat,
+    #101820;
+  color: #f2f6f7;
+  font:
+    1rem/1.6 system-ui,
+    sans-serif;
+}
+/* Browser extensions can insert siblings when clicked. Size the standalone scene explicitly. */
+.nl-status.nl-status-standalone {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.nl-status > * {
+  margin: 0;
+}
+.nl-status small {
+  color: #87e1d4;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+}
+.nl-status h1 {
+  max-width: 13ch;
+  font:
+    normal clamp(2.65rem, 5vw, 5rem)/1.05 Georgia,
+    serif;
+  text-wrap: balance;
+}
+.nl-status p {
+  max-width: min(43ch, 43vw);
+  color: #e0e9eb;
+}
+.nl-status nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+}
+.nl-status nav a,
+.nl-status button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #d9f7f2;
+  text-decoration: underline;
+}
+.nl-status nav > :first-child {
+  box-sizing: border-box;
+  padding: 0.65rem 1.2rem;
+  border: 0;
+  border-radius: 2rem;
+  background: #84dfd2;
+  color: #102422;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+  text-decoration: none;
+}
+.nl-status nav > :first-child:hover {
+  background: #a4ebdf;
+}
+.nl-status :focus-visible {
+  outline: 3px solid white;
+  outline-offset: 4px;
+}
+@media (max-width: 700px) {
+  .nl-status {
+    align-content: end;
+    min-height: 78svh;
+    padding: 9rem 1.5rem 3rem;
+    background:
+      linear-gradient(to bottom, transparent 0%, #101820 47%),
+      url("/status-street.webp") center top / auto 50% no-repeat,
+      #101820;
+  }
+  .nl-status p {
+    max-width: 43ch;
+  }
+}

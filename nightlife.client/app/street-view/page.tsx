@@ -44,6 +44,18 @@ export default function StreetView() {
     };
   }, []);
 
+  if (error) return (
+    <main className="nl-status">
+      <link rel="stylesheet" href="/status.css" />
+      <h1>Street View couldn't open</h1>
+      <p role="alert">{error}</p>
+      <nav aria-label="Street View recovery">
+        <button onClick={() => window.location.reload()}>Try again</button>
+        <a href="/">Night Light home</a>
+      </nav>
+    </main>
+  );
+
   return (
     <main
       ref={host}
@@ -53,7 +65,7 @@ export default function StreetView() {
       <div id="intro-screen" className="sv-start">
         <p>Headphones recommended for the best experience.</p>
         <p>Walk around and explore the stories of the night.</p>
-        {error && <p role="alert">{error}</p>}
+
       </div>
       
       <div id="street-toolbar" className="sv-toolbar">

@@ -388,6 +388,7 @@ export function mountStreet(
           inst.sound.setVolume(boxIsOpen && inst !== current ? 0 : 1);
       }
         // Keep your existing choice box logic if you still want the popup when very close (e.g., within 3.5 meters)
+        if (listening) return;
         let nearest: Station | null = null;
         let nearestDistance = 999;
 
@@ -401,6 +402,7 @@ export function mountStreet(
         }
 if (nearest && nearestDistance < CHOICE_RANGE) {
             current = nearest;
+            (listenBtn as HTMLButtonElement).disabled = !nearest.sound.buffer;
             
             // Format demographics text if available
             const demographics = [
