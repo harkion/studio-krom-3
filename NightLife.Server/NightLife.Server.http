@@ -1,0 +1,6 @@
+@NightLife.Server_HostAddress = http://localhost:5065
+
+GET {{NightLife.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

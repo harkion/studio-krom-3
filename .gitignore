@@ -1,0 +1,17 @@
+# Frontend (Next.js)
+**/node_modules/
+**/.next/
+**/out/
+.env.local
+
+# Backend (.NET)
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
+# Local Database
+*.db
+*.db-shm
+*.db-wal
