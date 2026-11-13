@@ -4,13 +4,17 @@ import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from "next/link";
+<<<<<<< HEAD
 import { NarrationPanel, useNarration } from '../NarrationControls';
+=======
+>>>>>>> fix-file-size-limit
 
 export default function AddNewStoryPage({
     searchParams
 }: {
     searchParams: Promise<{ x?: string; z?: string }>
 }) {
+<<<<<<< HEAD
     // In Next.js 15 Client Components, we use React.use() to unwrap the promise
     const resolvedParams = use(searchParams);
     const router = useRouter();
@@ -18,6 +22,11 @@ export default function AddNewStoryPage({
     // Initialize the narration hook with an empty string since the story doesn't exist in the DB yet
     const narration = useNarration('');
 
+=======
+    const resolvedParams = use(searchParams);
+    const router = useRouter();
+
+>>>>>>> fix-file-size-limit
     // Form State
     const [title, setTitle] = useState('');
     const [authorName, setAuthorName] = useState('');
@@ -30,6 +39,10 @@ export default function AddNewStoryPage({
     const [orbColor, setOrbColor] = useState('#7ee0d1');
 
     const [aiConsent, setAiConsent] = useState(true);
+<<<<<<< HEAD
+=======
+    const [selectedVoice, setSelectedVoice] = useState('EXAVITQu4vr4xnSDxMaL');
+>>>>>>> fix-file-size-limit
     const [mediaFile, setMediaFile] = useState<File | null>(null);
 
     const [publishing, setPublishing] = useState(false);
@@ -67,8 +80,13 @@ export default function AddNewStoryPage({
                 colorInt = parseInt(cleanHex, 16);
             }
 
+<<<<<<< HEAD
             // Insert into the database
             const { data: newStory, error: insertError } = await supabase.from('stories').insert({
+=======
+            // Insert into the database with status 'pending' so it goes to the review queue
+            const { error: insertError } = await supabase.from('stories').insert({
+>>>>>>> fix-file-size-limit
                 title,
                 location_name: locationName,
                 category,
@@ -78,6 +96,7 @@ export default function AddNewStoryPage({
                 z: parseFloat(zCoord) || 0,
                 audio: mediaUrl,
                 color: colorInt,
+<<<<<<< HEAD
                 status: 'approved', // Goes live immediately
                 ai_narration_consent: aiConsent
             }).select('id').single();
@@ -94,6 +113,15 @@ export default function AddNewStoryPage({
                 }
             }
 
+=======
+                status: 'pending', // Sent to review queue instead of going live instantly
+                ai_narration_consent: aiConsent,
+                voice_id: selectedVoice,
+            });
+
+            if (insertError) throw new Error(insertError.message);
+
+>>>>>>> fix-file-size-limit
             router.push('/Admin');
             router.refresh();
 
@@ -105,11 +133,19 @@ export default function AddNewStoryPage({
     };
 
     return (
+<<<<<<< HEAD
         <div className="w-full min-h-screen flex flex-col justify-start pt-24 px-8 pb-12 max-w-4xl mx-auto">
             <div className="mb-8">
                 <h1 className="text-3xl font-serif text-white tracking-tight">Add Curated Story</h1>
                 <p className="text-sm text-slate-400 mt-2">
                     Publish a new story directly to the 3D loop. It will be live immediately.
+=======
+        <div className="w-full min-h-screen flex flex-col justify-start pt-24 px-8 pb-12 max-w-4xl mx-auto font-sans text-slate-200">
+            <div className="mb-8">
+                <h1 className="text-3xl font-serif text-white tracking-tight">Add Curated Story</h1>
+                <p className="text-sm text-slate-400 mt-2">
+                    Submit a new curated story to the review queue where narration can be generated.
+>>>>>>> fix-file-size-limit
                 </p>
             </div>
 
@@ -184,10 +220,18 @@ export default function AddNewStoryPage({
                     <p className="text-[10px] text-slate-500 mt-1">Enter a hex code like #7ee0d1</p>
                 </div>
 
+<<<<<<< HEAD
                 {/* Admin AI Narration Toggle */}
                 <div>
                     <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Audio Generation</label>
                     <div className="flex items-start gap-3 p-4 bg-slate-800/50 border border-slate-700 rounded-xl">
+=======
+                {/* Admin AI Narration & Voice Choice */}
+                <div className="space-y-4 p-4 bg-slate-900/50 border border-slate-700 rounded-xl">
+                    <label className="block text-xs font-semibold text-[#7ee0d1] uppercase tracking-wider">AI Audio Settings</label>
+
+                    <div className="flex items-start gap-3">
+>>>>>>> fix-file-size-limit
                         <input
                             type="checkbox"
                             checked={aiConsent}
@@ -196,6 +240,7 @@ export default function AddNewStoryPage({
                         />
                         <label className="text-xs text-slate-300 cursor-pointer" onClick={() => setAiConsent(!aiConsent)}>
                             <span className="block font-bold text-white mb-1">Enable AI Audio Narration</span>
+<<<<<<< HEAD
                             Allow ElevenLabs to automatically generate an AI voiceover for this curated story.
                         </label>
                     </div>
@@ -207,6 +252,30 @@ export default function AddNewStoryPage({
                 <div className="border-t border-slate-700/80 pt-6">
                     <label className="block text-xs font-semibold text-slate-400 uppercase mb-3">
                         Upload Media (Audio, Photo, or Video)
+=======
+                            Allow ElevenLabs to automatically generate an AI voiceover for this curated story during review.
+                        </label>
+                    </div>
+
+                    {aiConsent && (
+                        <div>
+                            <label className="block text-xs text-slate-400 mb-1">Preferred Narrator</label>
+                            <select
+                                value={selectedVoice}
+                                onChange={(e) => setSelectedVoice(e.target.value)}
+                                className="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-[#7ee0d1]"
+                            >
+                                <option value="EXAVITQu4vr4xnSDxMaL">Jessica</option>
+                                <option value="21m00Tcm4TlvDq8ikWAM">Roger</option>
+                            </select>
+                        </div>
+                    )}
+                </div>
+
+                <div className="border-t border-slate-700/80 pt-6">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-3">
+                        Upload Custom Media (Optional - overrides AI audio)
+>>>>>>> fix-file-size-limit
                     </label>
                     <input
                         type="file"
@@ -220,8 +289,13 @@ export default function AddNewStoryPage({
                     <Link href="/Admin" className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition">
                         Cancel
                     </Link>
+<<<<<<< HEAD
                     <button type="submit" disabled={publishing} className="bg-[#7ee0d1] hover:bg-[#66d4c5] disabled:bg-[#35434f] border border-transparent disabled:border-slate-600 text-[#102029] disabled:text-slate-400 text-sm font-medium px-6 py-2.5 rounded-full transition">
                         {narration.busy ? 'Generating narration...' : publishing ? 'Publishing...' : 'Publish Story'}
+=======
+                    <button type="submit" disabled={publishing} className="bg-[#7ee0d1] hover:bg-[#66d4c5] disabled:bg-[#35434f] text-[#102029] disabled:text-slate-400 text-sm font-medium px-6 py-2.5 rounded-full transition shadow-md">
+                        {publishing ? 'Submitting to Review...' : 'Save & Send to Review'}
+>>>>>>> fix-file-size-limit
                     </button>
                 </div>
             </form>

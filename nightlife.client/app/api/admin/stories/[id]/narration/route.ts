@@ -72,7 +72,11 @@ async function contextFor(request: Request, context: Context) {
         .eq("status", "approved")
         .eq(consentColumn, true)
         .eq("narrative_text", story.narrative_text)
+<<<<<<< HEAD
         .or("audio.is.null,audio.eq.");
+=======
+        .eq("id", story.id);
+>>>>>>> fix-file-size-limit
       query =
         story.audio_status == null
           ? query.is("audio_status", null)
@@ -98,6 +102,7 @@ async function contextFor(request: Request, context: Context) {
       return db.storage.from("stories-media").getPublicUrl(path).data.publicUrl;
     },
     // Attach the URL only if the story and permission still match our starting data.
+<<<<<<< HEAD
     async finish(story, voiceId, consentColumn, audio) {
       const { data, error } = await db
         .from("stories")
@@ -110,6 +115,19 @@ async function contextFor(request: Request, context: Context) {
         .eq("audio_status", "generating")
         .or("audio.is.null,audio.eq.")
         .select("id");
+=======
+      async finish(story, voiceId, consentColumn, audio) {
+          const { data, error } = await db
+              .from("stories")
+              .update({ audio, audio_status: "ready" })
+              .eq("id", story.id)
+              .eq("status", "approved")
+              .eq(consentColumn, true)
+              .eq("narrative_text", story.narrative_text)
+              .eq("voice_id", voiceId)
+              .eq("audio_status", "generating")
+              .select("id");
+>>>>>>> fix-file-size-limit
       if (error) throw new Error("Audio attachment failed");
       return data?.length === 1;
     },

@@ -318,9 +318,12 @@ export default function ReviewStoryPage() {
                         )}
                     </div>
 
+<<<<<<< HEAD
                     {/* Choose the narrator here; Accept & Publish starts generation. */}
                     <NarrationPanel narration={narration} onApproval disabled={publishing || declining} />
 
+=======
+>>>>>>> fix-file-size-limit
 
                     {/* Audio/Video File Input */}
                     <div>
