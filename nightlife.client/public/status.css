@@ -95,3 +95,34 @@
     max-width: 43ch;
   }
 }
+
+/* Shared illustrated status layout. The moon artwork comes from the Night Light logo. */
+.nl-status {
+  justify-items: center;
+  text-align: center;
+  padding: clamp(2rem, 5vw, 5rem) 1.5rem;
+  gap: 1.25rem;
+  background: linear-gradient(#101820db, #101820ed),
+    url("/status-street.webp") center / cover no-repeat, #101820;
+}
+.nl-status .nl-status-code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .025em;
+  color: #a6ebe0;
+  font: 800 clamp(5rem, 23vw, 17rem)/1 system-ui, sans-serif;
+  text-shadow: .018em .024em #336763;
+}
+.nl-status-moon {
+  display: block;
+  width: .7em;
+  aspect-ratio: 1;
+  background: url("/status-crescent.svg") center / contain no-repeat;
+}
+.nl-status h1 { max-width: 28ch; font-size: clamp(2rem, 4vw, 3.5rem); }
+.nl-status p { max-width: 52ch; }
+.nl-status nav { justify-content: center; }
+@media (max-width: 700px) {
+  .nl-status { align-content: center; }
+}
