@@ -39,6 +39,12 @@ export default async function AdminOverviewPage() {
                 
                 {/* Right side buttons aligned together */}
                 <div className="flex items-center gap-4">
+                    <Link
+                        href="/Admin/analytics"
+                        className="px-5 py-2.5 bg-[#151c24] hover:bg-slate-800 border border-[#7ee0d1]/50 text-[#7ee0d1] text-sm font-medium rounded-full transition shadow-sm flex items-center gap-2"
+                    >
+                        <span>Analytics</span>
+                    </Link>
                     <Link 
                         href={`/Admin/new`} 
                         className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-sm font-medium rounded-full transition shadow-sm flex items-center gap-2"
