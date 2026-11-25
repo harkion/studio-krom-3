@@ -9,6 +9,7 @@ import CourageSurvey from "@/components/CourageSurvey"; // <-- Add this import
 
 export default function StreetView() {
   const host = useRef<HTMLDivElement>(null);
+  const surveyOpen = useRef(false);
   const [error, setError] = useState<{ code: 500 | 503; message: string } | null>(null);
   
   const [loopComplete, setLoopComplete] = useState(false);
@@ -27,7 +28,11 @@ export default function StreetView() {
         import("./scene")
             .then(({ mountStreet }) => {
                 if (cancelled || !host.current) return;
-                cleanup = mountStreet(host.current, storiesData, { onLoopComplete: () => setLoopComplete(true) });
+                cleanup = mountStreet(host.current, storiesData, { isSurveyOpen: () => surveyOpen.current, onLoopComplete: () => {
+                  surveyOpen.current = true;
+                  setLoopComplete(true);
+                  setShowSurvey(true);
+                } });
             })
             .catch(() => {
                 if (!cancelled)
@@ -93,14 +98,14 @@ export default function StreetView() {
       {/* --- ADDED: Native React Button to trigger the Survey --- */}
       {/* Only the full street experience needs the feedback button. */}
       {loopComplete && (
-        <button className="sv-feedback" onClick={() => setShowSurvey(true)}>
+        <button className="sv-feedback" onClick={() => { surveyOpen.current = true; setShowSurvey(true); }}>
           End Loop &amp; Feedback
         </button>
       )}
 
       {/* --- ADDED: The Courage Survey Modal Overlay --- */}
       {showSurvey && (
-          <CourageSurvey onClose={() => setShowSurvey(false)} />
+          <CourageSurvey onClose={() => { surveyOpen.current = false; setShowSurvey(false); }} />
       )}
     </main>
   );

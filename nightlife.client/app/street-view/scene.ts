@@ -17,7 +17,7 @@ export type StoryData = {
 export function mountStreet(
   host: HTMLDivElement,
   storiesData: StoryData[],
-  options: { preview?: boolean; onLoopComplete?: () => void } = {},
+  options: { preview?: boolean; onLoopComplete?: () => void; isSurveyOpen?: () => boolean } = {},
 ) {
   let disposed = false;
   let introTimer = 0;
@@ -322,6 +322,12 @@ export function mountStreet(
   let completed = false;
 
   function updateWalking(delta: number) {
+    // Pause walking while feedback is open and release held keyboard/touch input.
+    if (options.isSurveyOpen?.()) {
+      keys.forward = keys.back = keys.left = keys.right = false;
+      joystick.x = joystick.y = 0;
+      return;
+    }
     if (!started || paused) return;
 
     if (keys.left) camera.rotation.y += TURN_SPEED * delta;
@@ -347,7 +353,7 @@ export function mountStreet(
     highestZ = Math.max(highestZ, distanceZ);
     if (!completed && highestZ - lowestZ >= WORLD_LENGTH) {
       completed = true;
-      // Tell the parent React page it can show the feedback button.
+      // Tell the parent React page to open feedback once after completing the loop.
       options.onLoopComplete?.();
     }
     camera.position.z = wrapStreetZ(camera.position.z);
