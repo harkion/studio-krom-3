@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import "./street.css";
+import StatusPage from "@/components/StatusPage";
 import { getApprovedStories } from "./actions";
 import { type StoryData } from "./scene";
 import CourageSurvey from "@/components/CourageSurvey"; // <-- Add this import
 
 export default function StreetView() {
   const host = useRef<HTMLDivElement>(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<{ code: 500 | 503; message: string } | null>(null);
   
   const [loopComplete, setLoopComplete] = useState(false);
   // <-- Add state to control the survey modal
@@ -31,11 +32,11 @@ export default function StreetView() {
             .catch(() => {
                 if (!cancelled)
                     setError(
-                        "The 3D scene could not start. Try a browser with WebGL enabled.",
+                        { code: 500, message: "The 3D scene could not start. Try a browser with WebGL enabled." },
                     );
             });
     }).catch(() => {
-        if (!cancelled) setError("Stories could not load. Please refresh and try again.");
+        if (!cancelled) setError({ code: 503, message: "Stories are temporarily unavailable. Please try again shortly." });
     });
 
     return () => {
@@ -45,15 +46,12 @@ export default function StreetView() {
   }, []);
 
   if (error) return (
-    <main className="nl-status">
-      <link rel="stylesheet" href="/status.css" />
-      <h1>Street View couldn't open</h1>
-      <p role="alert">{error}</p>
-      <nav aria-label="Street View recovery">
-        <button onClick={() => window.location.reload()}>Try again</button>
-        <a href="/">Night Light home</a>
-      </nav>
-    </main>
+    <StatusPage
+      code={error.code}
+      title={error.code === 503 ? "The street is taking a break" : "Street View couldn't open"}
+      message={error.message}
+      retry={() => window.location.reload()}
+    />
   );
 
   return (
