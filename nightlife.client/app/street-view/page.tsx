@@ -12,7 +12,6 @@ export default function StreetView() {
   const surveyOpen = useRef(false);
   const [error, setError] = useState<{ code: 500 | 503; message: string } | null>(null);
   
-  const [loopComplete, setLoopComplete] = useState(false);
   // <-- Add state to control the survey modal
   const [showSurvey, setShowSurvey] = useState(false);
 
@@ -30,7 +29,6 @@ export default function StreetView() {
                 if (cancelled || !host.current) return;
                 cleanup = mountStreet(host.current, storiesData, { isSurveyOpen: () => surveyOpen.current, onLoopComplete: () => {
                   surveyOpen.current = true;
-                  setLoopComplete(true);
                   setShowSurvey(true);
                 } });
             })
@@ -97,11 +95,9 @@ export default function StreetView() {
 
       {/* --- ADDED: Native React Button to trigger the Survey --- */}
       {/* Only the full street experience needs the feedback button. */}
-      {loopComplete && (
-        <button className="sv-feedback" onClick={() => { surveyOpen.current = true; setShowSurvey(true); }}>
-          End Loop &amp; Feedback
+        <button className="sv-feedback sv-control-button" onClick={() => { surveyOpen.current = true; setShowSurvey(true); }}>
+          End loop
         </button>
-      )}
 
       {/* --- ADDED: The Courage Survey Modal Overlay --- */}
       {showSurvey && (

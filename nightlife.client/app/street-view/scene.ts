@@ -502,9 +502,7 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
   function makeButton(label: string, onClick: (button: HTMLButtonElement) => void): HTMLButtonElement {
     const button = document.createElement("button");
     button.textContent = label;
-    button.style.cssText =
-      "padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.4);" +
-      "background:rgba(20,20,40,0.7);color:white;font-size:14px;cursor:pointer;";
+    button.className = "sv-control-button";
     on(button, "click", () => {
       onClick(button);
       host.focus(); // so the walking keys keep working after a click
