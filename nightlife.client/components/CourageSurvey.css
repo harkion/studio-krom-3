@@ -1,0 +1,32 @@
+/* Keep the survey in the browser's modal layer, independent of street controls. */
+.courage-survey {
+  box-sizing: border-box;
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #35434f;
+  border-radius: 24px;
+  background: #17212b;
+  color: #e6edf3;
+  font-family: system-ui, sans-serif;
+}
+.courage-survey::backdrop { background: #070b10b8; backdrop-filter: blur(5px); }
+.survey-content { padding: 0 24px 24px; }
+.courage-survey .survey-close {
+  position: sticky; top: 8px; display: block; margin: 8px 0 0 auto;
+  width: 44px; height: 44px; border: 0; border-radius: 50%;
+  background: #17212b; color: #e6edf3; font-size: 22px; z-index: 1;
+}
+.courage-survey h2 { padding-right: 8px; font-size: clamp(1.5rem, 4vw, 1.9rem); line-height: 1.2; }
+.survey-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.courage-survey button, .courage-survey a { min-height: 44px; cursor: pointer; }
+.survey-options button { padding: 12px 4px; font-size: 14px; }
+.courage-survey input, .courage-survey textarea { font-size: 16px; }
+.courage-survey :focus-visible { outline: 2px solid #7ee0d1; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .courage-survey { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); border-radius: 20px; }
+  .survey-content { padding: 0 16px max(20px, env(safe-area-inset-bottom)); }
+}

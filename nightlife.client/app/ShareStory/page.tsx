@@ -19,6 +19,7 @@ export default function ShareStoryPage() {
         gender: '',
     });
 
+    const [submitError, setSubmitError] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
@@ -36,6 +37,8 @@ export default function ShareStoryPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitError(false);
+        setSubmitted(false);
         setSubmitting(true);
 
         try {
@@ -69,7 +72,7 @@ export default function ShareStoryPage() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
             console.error('Error submitting story:', error);
-            alert('Failed to submit story to database.');
+            setSubmitError(true);
         } finally {
             setSubmitting(false);
         }
@@ -407,12 +410,13 @@ export default function ShareStoryPage() {
                                 Saved to pending review queue.<br />
                                 * Required
                             </span>
+                            {submitError && <p role="alert">We couldn't confirm your submission. Your story is still here. Check your connection and try again.</p>}
                             <button
                                 type="submit"
                                 disabled={submitting || !formData.hasConsented}
                                 className="bg-[#7ee0d1] hover:bg-[#66d4c5] disabled:bg-[#35434f] disabled:text-[#aab8c4] text-[#102029] font-medium text-xs px-6 py-2.5 rounded-full transition flex items-center gap-1.5 shadow-sm"
                             >
-                                {submitting ? 'Submitting...' : 'Submit for review ↗'}
+                                {submitting ? 'Submitting...' : submitError ? 'Try submitting again' : 'Submit for review ↗'}
                             </button>
                         </div>
                     </form>

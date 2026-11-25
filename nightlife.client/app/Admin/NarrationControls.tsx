@@ -16,10 +16,11 @@ type Info = {
 };
 // GET reads the current status. POST asks the server to generate the selected voice.
 // Send the signed-in user’s token so the server can verify their admin access.
+const loginRequired = "Your narration session has expired. Sign in again to continue.";
 async function narrationRequest(storyId: string, voiceId?: string) {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
-  if (!token) throw new Error("Sign in to the admin page to manage narration.");
+  if (!token) throw new Error(loginRequired);
   const response = await fetch(
     `/api/admin/stories/${encodeURIComponent(storyId)}/narration`,
     {
@@ -33,6 +34,7 @@ async function narrationRequest(storyId: string, voiceId?: string) {
     },
   );
   const result = await response.json().catch(() => null);
+  if (response.status === 401) throw new Error(loginRequired);
   if (!response.ok)
     throw new Error(
       result?.error ||
@@ -115,7 +117,7 @@ export function NarrationPanel({
       <h2 className="text-base font-semibold">Story narration</h2>
       {error && (
         <p role="alert" className="text-sm text-red-300">
-          {error}
+          {error} {error === loginRequired && <a className="underline" href="/Admin/login">Sign in again</a>}
         </p>
       )}
       {!info && !error && (

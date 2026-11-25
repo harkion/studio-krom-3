@@ -1,9 +1,24 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import './CourageSurvey.css';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 export default function CourageSurvey({ onClose }: { onClose: () => void }) {
+    const dialog = useRef<HTMLDialogElement>(null);
+    // Native modal focus handling keeps keyboard and touch interactions inside feedback.
+    useEffect(() => {
+        const element = dialog.current;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        element?.showModal();
+        return () => {
+            element?.close();
+            document.body.style.overflow = previousOverflow;
+        };
+    }, []);
+
     const [helped, setHelped] = useState<string | null>(null);
     const [howItHelped, setHowItHelped] = useState('');
     const [tryGoingOut, setTryGoingOut] = useState<string | null>(null);
@@ -40,14 +55,15 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 font-sans text-slate-200">
-            <div className="max-w-lg w-full bg-[#17212b] border border-[#35434f] rounded-3xl p-8 shadow-2xl relative">
+    return createPortal(
+        <dialog ref={dialog} className="courage-survey" aria-labelledby="survey-heading"
+            onCancel={(event) => { event.preventDefault(); onClose(); }}>
+            <div className="survey-content">
                 
                 {/* Close Button */}
                 <button 
                     onClick={onClose}
-                    className="absolute top-6 right-6 text-slate-400 hover:text-white text-lg !bg-transparent !border-none"
+                    aria-label="Close feedback" type="button" className="survey-close"
                 >
                     ✕
                 </button>
@@ -55,7 +71,7 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
                 {!submitted ? (
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <h2 className="text-2xl font-serif text-white mb-2">You’ve Reached the End of the Loop</h2>
+                            <h2 id="survey-heading" className="text-2xl font-serif text-white mb-2">You’ve Reached the End of the Loop</h2>
                             <p className="text-xs text-slate-400">
                                 Your thoughts help us understand how this space supports our community.
                             </p>
@@ -72,15 +88,16 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
                             <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#7ee0d1]">
                                 Did walking through this loop help you feel more at ease?
                             </label>
-                            <div className="flex gap-4">
+                            <div className="survey-options">
                                 {['Yes', 'Somewhat', 'No'].map((option) => (
                                     <button
                                         type="button"
                                         key={option}
+                                        aria-pressed={helped === option}
                                         onClick={() => setHelped(option)}
                                         className={`flex-1 py-3 rounded-xl text-xs font-bold border-2 transition-all ${
                                             helped === option 
-                                                ? '!bg-[#7ee0d1] !text-[#102029] !border-white shadow-[0_0_15px_rgba(126,224,209,0.8)] scale-105' 
+                                                ? '!bg-[#7ee0d1] !text-[#102029] !border-white'
                                                 : '!bg-slate-800 !border-[#35434f] !text-slate-300 hover:!border-[#7ee0d1]/50'
                                         }`}
                                     >
@@ -95,7 +112,7 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
                             <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#7ee0d1]">
                                 How did it help you? (Optional)
                             </label>
-                            <textarea
+                            <textarea aria-label="How did it help you?"
                                 rows={3}
                                 value={howItHelped}
                                 onChange={(e) => setHowItHelped(e.target.value)}
@@ -109,15 +126,16 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
                             <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#7ee0d1]">
                                 Do you feel more inclined to try going out now?
                             </label>
-                            <div className="flex gap-4">
+                            <div className="survey-options">
                                 {['Yes', 'Maybe', 'Not really'].map((option) => (
                                     <button
                                         type="button"
                                         key={option}
+                                        aria-pressed={tryGoingOut === option}
                                         onClick={() => setTryGoingOut(option)}
                                         className={`flex-1 py-3 rounded-xl text-xs font-bold border-2 transition-all ${
                                             tryGoingOut === option 
-                                                ? '!bg-[#7ee0d1] !text-[#102029] !border-white shadow-[0_0_15px_rgba(126,224,209,0.8)] scale-105' 
+                                                ? '!bg-[#7ee0d1] !text-[#102029] !border-white'
                                                 : '!bg-slate-800 !border-[#35434f] !text-slate-300 hover:!border-[#7ee0d1]/50'
                                         }`}
                                     >
@@ -133,7 +151,7 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
                                 Any feedback about the website or experience?
                             </label>
                             <input
-                                type="text"
+                                aria-label="Website feedback" type="text"
                                 value={feedback}
                                 onChange={(e) => setFeedback(e.target.value)}
                                 placeholder="Tell us what you think..."
@@ -154,7 +172,7 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
                     /* Thank You View + Share Your Story CTA */
                     <div className="text-center py-6 space-y-6">
                         <div>
-                            <h2 className="text-2xl font-serif text-white mb-2">Thank You!</h2>
+                            <h2 id="survey-heading" className="text-2xl font-serif text-white mb-2">Thank You!</h2>
                             <p className="text-sm text-slate-300">
                                 Your voice matters to us and helps make our community safer and more connected.
                             </p>
@@ -179,6 +197,6 @@ export default function CourageSurvey({ onClose }: { onClose: () => void }) {
                     </div>
                 )}
             </div>
-        </div>
+        </dialog>, document.body
     );
 }

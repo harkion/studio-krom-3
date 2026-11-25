@@ -159,3 +159,21 @@
     transition: none;
   }
 }
+
+/* Fade through the same night colour used while Street View prepares its canvas. */
+.home-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #101820;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms ease-in-out;
+}
+.home-page.is-entering::after { opacity: 1; }
+.home-page.is-entering .home-content { transform: translateY(-12px); }
+.home-page.is-entering .home-cloud { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .home-page::after { transition: none; }
+}

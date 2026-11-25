@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import "./street.css";
+import StatusPage from "@/components/StatusPage";
 import { getApprovedStories } from "./actions";
 import { type StoryData } from "./scene";
 import CourageSurvey from "@/components/CourageSurvey"; // <-- Add this import
 
 export default function StreetView() {
   const host = useRef<HTMLDivElement>(null);
-  const [error, setError] = useState("");
+  const surveyOpen = useRef(false);
+  const [error, setError] = useState<{ code: 500 | 503; message: string } | null>(null);
   
   const [loopComplete, setLoopComplete] = useState(false);
   // <-- Add state to control the survey modal
@@ -26,16 +28,20 @@ export default function StreetView() {
         import("./scene")
             .then(({ mountStreet }) => {
                 if (cancelled || !host.current) return;
-                cleanup = mountStreet(host.current, storiesData, { onLoopComplete: () => setLoopComplete(true) });
+                cleanup = mountStreet(host.current, storiesData, { isSurveyOpen: () => surveyOpen.current, onLoopComplete: () => {
+                  surveyOpen.current = true;
+                  setLoopComplete(true);
+                  setShowSurvey(true);
+                } });
             })
             .catch(() => {
                 if (!cancelled)
                     setError(
-                        "The 3D scene could not start. Try a browser with WebGL enabled.",
+                        { code: 500, message: "The 3D scene could not start. Try a browser with WebGL enabled." },
                     );
             });
     }).catch(() => {
-        if (!cancelled) setError("Stories could not load. Please refresh and try again.");
+        if (!cancelled) setError({ code: 503, message: "Stories are temporarily unavailable. Please try again shortly." });
     });
 
     return () => {
@@ -43,6 +49,15 @@ export default function StreetView() {
       cleanup?.();
     };
   }, []);
+
+  if (error) return (
+    <StatusPage
+      code={error.code}
+      title={error.code === 503 ? "The street is taking a break" : "Street View couldn't open"}
+      message={error.message}
+      retry={() => window.location.reload()}
+    />
+  );
 
   return (
     <main
@@ -53,7 +68,7 @@ export default function StreetView() {
       <div id="intro-screen" className="sv-start">
         <p>Headphones recommended for the best experience.</p>
         <p>Walk around and explore the stories of the night.</p>
-        {error && <p role="alert">{error}</p>}
+
       </div>
       
       <div id="street-toolbar" className="sv-toolbar">
@@ -83,14 +98,14 @@ export default function StreetView() {
       {/* --- ADDED: Native React Button to trigger the Survey --- */}
       {/* Only the full street experience needs the feedback button. */}
       {loopComplete && (
-        <button className="sv-feedback" onClick={() => setShowSurvey(true)}>
+        <button className="sv-feedback" onClick={() => { surveyOpen.current = true; setShowSurvey(true); }}>
           End Loop &amp; Feedback
         </button>
       )}
 
       {/* --- ADDED: The Courage Survey Modal Overlay --- */}
       {showSurvey && (
-          <CourageSurvey onClose={() => setShowSurvey(false)} />
+          <CourageSurvey onClose={() => { surveyOpen.current = false; setShowSurvey(false); }} />
       )}
     </main>
   );
