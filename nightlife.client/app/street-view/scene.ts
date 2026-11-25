@@ -1,8 +1,10 @@
 import * as THREE from "three";
 import { wrapStreetZ, streetArea, WORLD_LENGTH } from "./loop-path";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { supabase } from "@/lib/supabase";
 
 export type StoryData = {
+    id: string | number;
     x: number;
     z: number;
     title: string;
@@ -15,6 +17,7 @@ export type StoryData = {
 };
 
 type Station = {
+    id: string | number;
     x: number;
     z: number;
     title: string;
@@ -620,11 +623,28 @@ export function mountStreet(
             choiceBox.classList.add("hidden");
         }
     }
-
+    
     let playbackRequest = 0;
+    const loggedListens = new Set<string | number>();
+
     on(listenBtn, "click", function () {
         const selected = current;
-        if (!selected?.sound.buffer) return;
+        if (!selected) return;
+
+        if (!loggedListens.has(selected.id)) {
+            loggedListens.add(selected.id);
+            void supabase
+                .from("story_listens")
+                .insert({ story_id: selected.id })
+                .then(({ error }) => {
+                    if (error) {
+                        console.error("Failed to log story listen:", error.message);
+                        loggedListens.delete(selected.id);
+                    }
+                });
+        }
+
+        if (!selected.sound.buffer) return;
         if (!heard.includes(selected)) heard.push(selected);
         setAudioPaused(false);
         const request = ++playbackRequest;
@@ -657,7 +677,6 @@ export function mountStreet(
                     "Audio could not start. Try again or continue walking.";
             });
     });
-
     on(passBtn, "click", function () {
         if (!current) return;
 
