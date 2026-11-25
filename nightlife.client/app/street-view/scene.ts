@@ -1,7 +1,9 @@
 import * as THREE from "three";
+import { supabase } from "@/lib/supabase";
 import { wrapStreetZ, streetArea, WORLD_LENGTH } from "./loop-path";
 
 export type StoryData = {
+  id: string | number;
   x: number;
   z: number;
   title: string;
@@ -31,6 +33,7 @@ export function mountStreet(
     return host.querySelector<HTMLElement>(`#${id}`)!;
   }
   type Station = {
+    id: string | number;
     x: number;
     z: number;
     title: string;
@@ -432,9 +435,25 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
     }
 
   let playbackRequest = 0;
+  const loggedListens = new Set<string | number>();
   on(listenBtn, "click", function () {
     const selected = current;
     if (!selected?.sound.buffer) return;
+
+        if (!loggedListens.has(selected.id)) {
+            loggedListens.add(selected.id);
+            void supabase
+                .from("story_listens")
+                .insert({ story_id: selected.id })
+                .then(({ error }) => {
+                    if (error) {
+                        console.error("Failed to log story listen:", error.message);
+                        loggedListens.delete(selected.id);
+                    }
+                });
+        }
+
+
     if (!heard.includes(selected)) heard.push(selected);
     setAudioPaused(false); // pressing Listen always turns the sound back on
     const request = ++playbackRequest;
