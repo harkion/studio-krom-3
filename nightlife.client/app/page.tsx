@@ -13,6 +13,7 @@ export default function Home() {
   const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
+    router.prefetch("/street-view");
     let cancelled = false;
     let dispose: (() => void) | undefined;
     import("./street-view/scene").then(({ mountStreet }) => {
@@ -23,14 +24,14 @@ export default function Home() {
       dispose?.();
       if (timer.current) clearTimeout(timer.current);
     };
-  }, []);
+  }, [router]);
 
   function enterStreet(event: React.MouseEvent<HTMLAnchorElement>) {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     event.preventDefault();
     if (entering) return;
     setEntering(true);
-    timer.current = setTimeout(() => router.push("/street-view"), 1100);
+    timer.current = setTimeout(() => router.push("/street-view"), 700);
   }
 
   return (

@@ -4,7 +4,7 @@
   min-height: 520px;
   height: calc(100dvh - 78px);
   overflow: hidden;
-  background: #6b6b8a;
+  background: #101820;
   color: #f2f2f2;
   font-family: Arial, sans-serif;
 }
@@ -194,4 +194,19 @@
   .sv-controls { grid-area: 2 / 1; justify-self: end; }
   .sv-status { grid-row: 3; }
   .sv-street { min-height: 0; }
+}
+
+/* Reveal the newly mounted canvas gradually instead of flashing its sky colour. */
+.sv-street canvas { animation: street-reveal 900ms ease-out both; }
+.sv-start { background: #101820d9; }
+.sv-start p { animation: street-prompt 600ms ease-out both; }
+.sv-start p + p { animation-delay: 120ms; }
+@keyframes street-reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes street-prompt {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sv-street canvas, .sv-start p { animation: none; }
+  .sv-start { transition: none; }
 }
