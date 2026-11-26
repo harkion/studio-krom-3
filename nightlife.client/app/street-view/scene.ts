@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { supabase } from "@/lib/supabase";
 import { wrapStreetZ, streetArea, WORLD_LENGTH } from "./loop-path";
+import { addNightSky } from "./night-sky";
 
 export type StoryData = {
   id: string | number;
@@ -56,9 +57,8 @@ export function mountStreet(
   const SILENT_DISTANCE = 8; // further than this (metres): no sound
   const scene = new THREE.Scene();
 
-  const NIGHT = 0x7a6a85; // dusky warm purple
-  scene.background = new THREE.Color(NIGHT);
-  scene.fog = new THREE.FogExp2(NIGHT, 0.025);
+  // Night sky, stars, moon and fog (see night-sky.ts)
+  const sky = addNightSky(scene);
 
   const camera = new THREE.PerspectiveCamera(
     70,
@@ -1067,6 +1067,7 @@ export function mountStreet(
       camera.aspect = host.clientWidth / Math.max(1, host.clientHeight);
       camera.updateProjectionMatrix();
       renderer.setSize(host.clientWidth, host.clientHeight);
+      sky.update(camera, 0);
       renderer.render(scene, camera);
     };
     const observer = new ResizeObserver(draw);
@@ -1074,6 +1075,7 @@ export function mountStreet(
     draw();
     return () => {
       observer.disconnect();
+      sky.dispose();
       scene.traverse(object => {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose();
@@ -1492,6 +1494,7 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
       inst.mesh.position.y = inst.baseY + Math.sin(time + i) * 0.2;
     });
 
+    sky.update(camera, time);
     renderer.render(scene, camera);
   });
 
@@ -1503,6 +1506,7 @@ if (nearest && nearestDistance < CHOICE_RANGE) {
   resize.observe(host);
   return () => {
     disposed = true;
+    sky.dispose();
     window.clearTimeout(introTimer);
     window.clearTimeout(fadeTimer);
     controls.remove();
